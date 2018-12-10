@@ -26,8 +26,8 @@ for epoch in range(20):
     total_batch = int(len(data.train_data) / 64)
     data.num = 0
     for i in range(total_batch):
-        ae1_output = sess.run(ae1.encode, feed_dict={ae1.x: data.batch_size([-1, 32, 128, 3])})
-        _,cost = sess.run(ae2.partial_fit(), feed_dict={ae2.x: ae1_output})
+        #ae1_output = sess.run(ae1.encode, feed_dict={ae1.x: data.batch_size([-1, 32, 128, 3])})
+        _,cost = sess.run(ae1.partial_fit(), feed_dict={ae1.x: data.batch_size([-1, 32, 128, 3])})
         avg_cost += cost / len(data.train_data) * 64
 
     print("Epoch:{},Cost:{:.9f}".format(epoch, avg_cost))

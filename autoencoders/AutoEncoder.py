@@ -15,9 +15,13 @@ class Autoencoder_conv2conv(object):
                 self.weight['b1']
             )
         )
+
+        self.hidden_maxpool = tf.nn.max_pool(self.encode,[1,2,2,1],strides=[1,2,2,1],padding='SAME')
+        self.hidden_upscale = tf.image.resize_nearest_neighbor(self.hidden_maxpool,input_shape[1:3])
+
         self.decode = transfer_function(
             tf.add(
-                tf.nn.conv2d(self.encode,self.weight['w2'],[1,1,1,1],padding="SAME"),
+                tf.nn.conv2d(self.hidden_upscale,self.weight['w2'],[1,1,1,1],padding="SAME"),
                 self.weight['b2']
             )
         )
