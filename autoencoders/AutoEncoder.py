@@ -47,7 +47,6 @@ class Autoencoder_conv2conv(object):
     def total_cost(self):
         return self.cost
 
-
 #卷积层与反卷积层组成的自编码器
 class Autoencoder_conv2deconv(object):
     def __init__(self,name,encoder_filter_size,decoder_filter_size,
@@ -100,5 +99,60 @@ class Autoencoder_conv2deconv(object):
 
 #全连接层与反卷积层组成的自编码器
 class Autoencoder_full2deconv(object):
-    def __init__(self):
-        pass
+    def __init__(self,name,optimizer,transfer_function=tf.nn.relu):
+        self.weight = self._initialize_weights(name)
+        self.x = tf.placeholder(tf.float32,[64,2*8*64])
+
+        self.fullconnect1 = transfer_function(
+            tf.add(
+                tf.matmul(self.x,self.weight['w1']),
+                self.weight['b1']
+            )
+        )
+        self.fullconnect2 = transfer_function(
+            tf.add(
+                tf.matmul(self.fullconnect1,self.weight['w2']),
+                self.weight['b2']
+            )
+        )
+
+        self.deconv = transfer_function(
+            tf.add(
+                tf.nn.conv2d_transpose(tf.reshape(self.fullconnect2,self.weight['w3'],[64,2,8,64],[1,1,1,1],padding='SAME'),
+                self.weight['b3'])
+            )
+        )
+
+        self.cost = tf.reduce_mean(tf.square(tf.subtract(self.x,self.deconv)))
+
+        self.optimizer = optimizer.minimize(self.cost)
+
+
+    def _initialize_weights(self,name):
+        all_weights = dict()
+
+        all_weights['w1'] = tf.get_variable(name=name+'_w1',
+                                            shape=[2*8*64,64],
+                                            initializer=tf.contrib.layers.xavier_initializer(uniform=False))
+        all_weights['b1'] = tf.get_variable(name=name+'_b1',
+                                            shape=[64],
+                                            initializer=tf.contrib.layers.xavier_initializer(uniform=False))
+        all_weights['w2'] = tf.get_variable(name=name+'_w2',
+                                            shape=[64,2*8*64],
+                                            initializer=tf.contrib.layers.xavier_initializer(uniform=False))
+        all_weights['b2'] = tf.get_variable(name=name+'_b2',
+                                            shape=[2*8*64],
+                                            initializer=tf.contrib.layers.xavier_initializer(uniform=False))
+        all_weights['w3'] = tf.get_variable(name=name+'_w3',
+                                            shape=[3,3,64,64],
+                                            initializer=tf.contrib.layers.xavier_initializer(uniform=False))
+        all_weights['b3'] = tf.get_variable(name=name+'_b3',
+                                            shape=[64],
+                                            initializer=tf.contrib.layers.xavier_initializer(uniform=False))
+
+        return all_weights
+
+    def partial_fit(self):
+        return (self.optimizer,self.cost)
+    def total_cost(self):
+        return self.cost
