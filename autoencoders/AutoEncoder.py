@@ -70,13 +70,13 @@ class Autoencoder_conv2deconv(object):
         decoder_output_shape = [input_shape[0],input_shape[1]//2,input_shape[2]//2,input_shape[3]]
         self.decode = transfer_function(
             tf.add(
-                tf.nn.conv2d_transpose(self.encode,self.weight['w2'],decoder_output_shape,[1,1,1,1],padding='SAME'),
+                tf.nn.conv2d_transpose(batch_norm(self.encode),self.weight['w2'],decoder_output_shape,[1,1,1,1],padding='SAME'),
                 self.weight['b2']
             )
         )
 
         self.upscale = tf.image.resize_nearest_neighbor(self.decode,input_shape[1:3])
-        self.upscale = batch_norm(self.upscale)
+        #self.upscale = batch_norm(self.upscale)
         self.cost = tf.reduce_mean(tf.square(tf.subtract(self.upscale, self.input)))
         self.optimizer = optimizer.minimize(self.cost)
 
@@ -108,11 +108,14 @@ class Autoencoder_conv2deconv(object):
 class Autoencoder_full2deconv(object):
     def __init__(self,name,optimizer,transfer_function=tf.nn.relu):
         self.weight = self._initialize_weights(name)
-        self.x = tf.placeholder(tf.float32,[64,2*8*64])
+        self.x = tf.placeholder(tf.float32,[64,4,16,64])
+
+        self.inp = tf.nn.max_pool(self.x,[1,2,2,1],[1,2,2,1],padding='SAME')
+        self.input = tf.reshape(self.inp,[64,1024])
 
         self.fullconnect1 = transfer_function(
             tf.add(
-                tf.matmul(self.x,self.weight['w1']),
+                tf.matmul(self.input,self.weight['w1']),
                 self.weight['b1']
             )
         )
@@ -129,8 +132,10 @@ class Autoencoder_full2deconv(object):
                 self.weight['b3'])
         )
 
+        print(self.input.shape)
+        print(self.deconv.shape)
 
-        self.cost = tf.reduce_mean(tf.square(tf.subtract(tf.reshape(self.x,[64,2,8,64]),self.deconv)))
+        self.cost = tf.reduce_mean(tf.square(tf.subtract(self.inp,self.deconv)))
 
         self.optimizer = optimizer.minimize(self.cost)
 

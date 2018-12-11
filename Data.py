@@ -8,10 +8,10 @@ class Data(object):
         np.random.shuffle(self.train_index)
         self.train_data = self.train[self.train_index, :]
         self.batchsize = batchsize
-        self.test_data = self.img[4480:]
-        self.test_index = np.arange(len(self.test_data))
-        np.random.shuffle((self.test_index))
-        self.test_data = self.test_data[self.test_index,:]
+        self.test_ = self.img[4480:]
+        self.test_index = np.arange(len(self.test_))
+        np.random.shuffle(self.test_index)
+        self.test_data = self.test_[self.test_index,:]
         self.num = 0
 
     def batch_size(self, resize):
