@@ -47,6 +47,9 @@ class Autoencoder_conv2conv(object):
     def total_cost(self):
         return self.cost
 
+    def filture(self):
+        return self.encode
+
 #卷积层与反卷积层组成的自编码器
 class Autoencoder_conv2deconv(object):
     def __init__(self,name,encoder_filter_size,decoder_filter_size,
@@ -98,6 +101,8 @@ class Autoencoder_conv2deconv(object):
 
     def total_cost(self):
         return self.cost
+    def filture(self):
+        return self.encode
 
 #全连接层与反卷积层组成的自编码器
 class Autoencoder_full2deconv(object):
@@ -120,12 +125,12 @@ class Autoencoder_full2deconv(object):
 
         self.deconv = transfer_function(
             tf.add(
-                tf.nn.conv2d_transpose(tf.reshape(self.fullconnect2,self.weight['w3'],[64,2,8,64],[1,1,1,1],padding='SAME'),
+                tf.nn.conv2d_transpose(tf.reshape(self.fullconnect2,[64,2,8,64]),self.weight['w3'],[64,2,8,64],[1,1,1,1],padding='SAME'),
                 self.weight['b3'])
-            )
         )
 
-        self.cost = tf.reduce_mean(tf.square(tf.subtract(self.x,self.deconv)))
+
+        self.cost = tf.reduce_mean(tf.square(tf.subtract(tf.reshape(self.x,[64,2,8,64]),self.deconv)))
 
         self.optimizer = optimizer.minimize(self.cost)
 
