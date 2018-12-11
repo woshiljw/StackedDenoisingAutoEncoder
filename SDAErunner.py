@@ -159,7 +159,7 @@ for i in range(total_batch):
     cost = sess.run(ae4.total_cost(), feed_dict={ae4.x: input})
     avg_cost += cost / len(data.train_data) * 64
 print("test cost: ",avg_cost)
-print("#################################ae4 train finished##################################")
+print("#################################ae4 train finished#################################")
 
 
 for epoch in range(200):
