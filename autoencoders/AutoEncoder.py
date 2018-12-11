@@ -75,9 +75,9 @@ class Autoencoder_conv2deconv(object):
             )
         )
 
-        self.upscale = tf.image.resize_nearest_neighbor(self.decode,input_shape[1:3])
+        #self.upscale = tf.image.resize_nearest_neighbor(self.decode,input_shape[1:3])
         #self.upscale = batch_norm(self.upscale)
-        self.cost = tf.reduce_mean(tf.square(tf.subtract(self.upscale, self.input)))
+        self.cost = tf.reduce_mean(tf.square(tf.subtract(self.decode, self.maxpool)))
         self.optimizer = optimizer.minimize(self.cost)
 
     def _initialize_weights(self,name,encoder_filter_size,decoder_filter_size):
