@@ -70,7 +70,7 @@ class Autoencoder_conv2deconv(object):
                 tf.nn.conv2d(self.maxpool,self.weight['w1'],strides=[1,1,1,1],padding='SAME'),
                 self.weight['b1']
             )
-            
+
         )
 
         decoder_output_shape = [input_shape[0],input_shape[1]//2,input_shape[2]//2,input_shape[3]]
