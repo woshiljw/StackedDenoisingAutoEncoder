@@ -83,7 +83,7 @@ class Autoencoder_conv2deconv(object):
 
         )
 
-        self.upscale = tf.image.resize_bilinear(self.decode,input_shape[1:3])
+        self.upscale = tf.image.resize_nearest_neighbor(self.decode,input_shape[1:3])
         self.cost = tf.reduce_mean(tf.square(tf.subtract(self.upscale, self.x)))
         self.optimizer = optimizer.minimize(self.cost)
 
