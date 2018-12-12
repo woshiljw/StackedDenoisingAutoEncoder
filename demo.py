@@ -8,12 +8,29 @@ h = tf.layers.conv2d(x, 64, [5, 5], [1, 1], activation=tf.nn.relu,
                      bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
                      padding='SAME'
                      )
+h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
+h = tf.layers.conv2d(h,96,[3,3],[1,1],activation=tf.nn.relu,
+                     kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
+                     bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
+                     padding='SAME'
+                     )
+h = tf.layers.conv2d_transpose(h,64,[5,5],[1,1],activation=tf.nn.relu,
+                               kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
+                               bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
+                               padding='SAME'
+                               )
+h = tf.layers.conv2d_transpose(h,64,[5,5],[2,2],activation=tf.nn.relu,
+                               kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
+                               bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
+                               padding='SAME'
+                               )
+
 out = tf.layers.conv2d(h, 3, [1, 1], [1, 1], activation=tf.nn.relu,
                        kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
                        bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
                        padding='SAME'
                        )
-print(out.shape)
+
 stackcost = tf.reduce_mean(tf.square(tf.subtract(x, out)))
 opt = tf.train.AdamOptimizer().minimize(stackcost)
 
