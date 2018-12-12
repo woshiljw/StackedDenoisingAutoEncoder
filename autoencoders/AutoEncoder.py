@@ -73,18 +73,18 @@ class Autoencoder_conv2deconv(object):
 
         )
 
-        decoder_output_shape = [input_shape[0],input_shape[1]//2,input_shape[2]//2,input_shape[3]]
+        decoder_output_shape = [input_shape[0],input_shape[1],input_shape[2],input_shape[3]]
         self.decode = transfer_function(
 
             tf.add(
-                tf.nn.conv2d_transpose(self.encode,self.weight['w2'],decoder_output_shape,[1,1,1,1],padding='SAME'),
+                tf.nn.conv2d_transpose(self.encode,self.weight['w2'],decoder_output_shape,[1,2,2,1],padding='SAME'),
                 self.weight['b2']
             )
 
         )
 
-        self.upscale = tf.image.resize_nearest_neighbor(self.decode,input_shape[1:3])
-        self.cost = tf.reduce_mean(tf.square(tf.subtract(self.upscale, self.x)))
+        #self.upscale = tf.image.resize_bilinear(self.decode,input_shape[1:3])
+        self.cost = tf.reduce_mean(tf.square(tf.subtract(self.decode, self.x)))
         self.optimizer = optimizer.minimize(self.cost)
 
     def _initialize_weights(self,name,encoder_filter_size,decoder_filter_size):

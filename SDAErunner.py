@@ -67,7 +67,7 @@ h = tf.image.resize_nearest_neighbor(h,[32,128])
 output = tf.nn.relu(tf.nn.conv2d(h,ae1.weight['w2'],[1,1,1,1],padding='SAME')+ae1.weight['b2'])#ae1
 
 stackcost = tf.reduce_mean(tf.square(tf.subtract(x,output)))
-opt = tf.train.AdamOptimizer(0.00585).minimize(stackcost)
+opt = tf.train.AdamOptimizer(0.0185).minimize(stackcost)
 
 
 
