@@ -32,6 +32,7 @@ ae5 = Autoencoder_full2deconv('ae5',
 x = tf.placeholder(tf.float32,[64,32,128,3])
 h = tf.nn.relu(tf.nn.conv2d(x,ae1.weight['w1'],[1,1,1,1],padding='SAME')+ae1.weight['b1'])#ae1
 h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
+h = tf.nn.dropout(h,0.75)
 h = tf.nn.relu(tf.nn.conv2d(h,ae2.weight['w1'],[1,1,1,1],padding='SAME')+ae2.weight['b1'])#ae2
 #h = batch_norm(h)
 #h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
