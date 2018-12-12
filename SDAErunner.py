@@ -84,16 +84,16 @@ for epoch in range(0):
         avg_cost += cost / len(data.train_data) * 64
 
     print("Epoch:{},Cost:{:.9f}".format(epoch, avg_cost))
-avg_cost = 0
-total_batch = int(len(data.test_data) / 64)
-data.num = 0
-for i in range(total_batch):
-    #print(data.test([-1,32,128,3]))
-
-    cost = sess.run(ae1.total_cost(),feed_dict={ae1.x:data.test([-1, 32, 128, 3])})
-    avg_cost += cost / len(data.test_data) * 64
-print("test cost: ",avg_cost)
-print("#################################ae1 train finished##################################")
+# avg_cost = 0
+# total_batch = int(len(data.test_data) / 64)
+# data.num = 0
+# for i in range(total_batch):
+#     #print(data.test([-1,32,128,3]))
+#
+#     cost = sess.run(ae1.total_cost(),feed_dict={ae1.x:data.test([-1, 32, 128, 3])})
+#     avg_cost += cost / len(data.test_data) * 64
+# print("test cost: ",avg_cost)
+# print("#################################ae1 train finished##################################")
 
 for epoch in range(0):
     avg_cost = 0
@@ -105,15 +105,15 @@ for epoch in range(0):
         avg_cost += cost / len(data.train_data) * 64
 
     print("Epoch:{},Cost:{:.9f}".format(epoch, avg_cost))
-avg_cost = 0
-total_batch = int(len(data.test_data) / 64)
-data.num = 0
-for i in range(total_batch):
-    input1 = sess.run(ae1.filture(), feed_dict={ae1.x: data.test([-1, 32, 128, 3])})
-    cost = sess.run(ae2.total_cost(), feed_dict={ae2.x: input1})
-    avg_cost += cost / len(data.test_data) * 64
-print("test cost: ",avg_cost)
-print("#################################ae2 train finished##################################")
+# avg_cost = 0
+# total_batch = int(len(data.test_data) / 64)
+# data.num = 0
+# for i in range(total_batch):
+#     input1 = sess.run(ae1.filture(), feed_dict={ae1.x: data.test([-1, 32, 128, 3])})
+#     cost = sess.run(ae2.total_cost(), feed_dict={ae2.x: input1})
+#     avg_cost += cost / len(data.test_data) * 64
+# print("test cost: ",avg_cost)
+# print("#################################ae2 train finished##################################")
 
 
 for epoch in range(0):
@@ -127,16 +127,16 @@ for epoch in range(0):
         _,cost = sess.run(ae3.partial_fit(),feed_dict={ae3.x:input})
         avg_cost += cost / len(data.train_data) * 64
     print("Epoch:{},Cost:{:.9f}".format(epoch, avg_cost))
-avg_cost = 0
-total_batch = int(len(data.test_data) / 64)
-data.num = 0
-for i in range(total_batch):
-    input = sess.run(ae1.filture(), feed_dict={ae1.x: data.test([-1, 32, 128, 3])})
-    input = sess.run(ae2.filture(), feed_dict={ae2.x: input})
-    cost = sess.run(ae3.total_cost(), feed_dict={ae3.x: input})
-    avg_cost += cost / len(data.test_data) * 64
-print("test cost: ",avg_cost)
-print("#################################ae3 train finished##################################")
+# avg_cost = 0
+# total_batch = int(len(data.test_data) / 64)
+# data.num = 0
+# for i in range(total_batch):
+#     input = sess.run(ae1.filture(), feed_dict={ae1.x: data.test([-1, 32, 128, 3])})
+#     input = sess.run(ae2.filture(), feed_dict={ae2.x: input})
+#     cost = sess.run(ae3.total_cost(), feed_dict={ae3.x: input})
+#     avg_cost += cost / len(data.test_data) * 64
+# print("test cost: ",avg_cost)
+# print("#################################ae3 train finished##################################")
 
 for epoch in range(0):
     avg_cost = 0
@@ -149,17 +149,17 @@ for epoch in range(0):
         _,cost = sess.run(ae4.partial_fit(),feed_dict={ae4.x:input})
         avg_cost += cost / len(data.train_data) * 64
     print("Epoch:{},Cost:{:.9f}".format(epoch, avg_cost))
-avg_cost = 0
-total_batch = int(len(data.test_data) / 64)
-data.num = 0
-for i in range(total_batch):
-    input = sess.run(ae1.filture(), feed_dict={ae1.x: data.test([-1, 32, 128, 3])})
-    input = sess.run(ae2.filture(), feed_dict={ae2.x: input})
-    input = sess.run(ae3.filture(), feed_dict={ae3.x: input})
-    cost = sess.run(ae4.total_cost(), feed_dict={ae4.x: input})
-    avg_cost += cost / len(data.test_data) * 64
-print("test cost: ",avg_cost)
-print("#################################ae4 train finished##################################")
+# avg_cost = 0
+# total_batch = int(len(data.test_data) / 64)
+# data.num = 0
+# for i in range(total_batch):
+#     input = sess.run(ae1.filture(), feed_dict={ae1.x: data.test([-1, 32, 128, 3])})
+#     input = sess.run(ae2.filture(), feed_dict={ae2.x: input})
+#     input = sess.run(ae3.filture(), feed_dict={ae3.x: input})
+#     cost = sess.run(ae4.total_cost(), feed_dict={ae4.x: input})
+#     avg_cost += cost / len(data.test_data) * 64
+# print("test cost: ",avg_cost)
+# print("#################################ae4 train finished##################################")
 
 
 for epoch in range(0):
@@ -174,20 +174,20 @@ for epoch in range(0):
         _,cost = sess.run(ae5.partial_fit(),feed_dict={ae5.x:input})
         avg_cost += cost / len(data.train_data) * 64
     print("Epoch:{},Cost:{:.9f}".format(epoch, avg_cost))
-avg_cost = 0
-total_batch = int(len(data.test_data) / 64)
-data.num = 0
-for i in range(total_batch):
-    input = sess.run(ae1.encode, feed_dict={ae1.x: data.test([-1, 32, 128, 3])})
-    input = sess.run(ae2.encode, feed_dict={ae2.x: input})
-    input = sess.run(ae3.encode, feed_dict={ae3.x: input})
-    input = sess.run(ae4.encode, feed_dict={ae4.x: input})
-
-    cost = sess.run(ae5.total_cost(), feed_dict={ae5.x: input})
-    avg_cost += cost / len(data.test_data) * 64
-print("test cost: ",avg_cost)
-print("#################################ae5 train finished##################################")
-
+# avg_cost = 0
+# total_batch = int(len(data.test_data) / 64)
+# data.num = 0
+# for i in range(total_batch):
+#     input = sess.run(ae1.encode, feed_dict={ae1.x: data.test([-1, 32, 128, 3])})
+#     input = sess.run(ae2.encode, feed_dict={ae2.x: input})
+#     input = sess.run(ae3.encode, feed_dict={ae3.x: input})
+#     input = sess.run(ae4.encode, feed_dict={ae4.x: input})
+#
+#     cost = sess.run(ae5.total_cost(), feed_dict={ae5.x: input})
+#     avg_cost += cost / len(data.test_data) * 64
+# print("test cost: ",avg_cost)
+# print("#################################ae5 train finished##################################")
+#
 
 
 
