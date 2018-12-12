@@ -31,8 +31,8 @@ ae5 = Autoencoder_full2deconv('ae5',
 
 x = tf.placeholder(tf.float32,[64,32,128,3])
 h = tf.nn.relu(tf.nn.conv2d(x,ae1.weight['w1'],[1,1,1,1],padding='SAME')+ae1.weight['b1'])#ae1
-#h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
-#h = tf.nn.relu(batch_norm(tf.nn.conv2d(batch_norm(h),ae2.weight['w1'],[1,1,1,1],padding='SAME')+ae2.weight['b1']))#ae2
+h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
+h = tf.nn.relu(tf.nn.conv2d(h,ae2.weight['w1'],[1,1,1,1],padding='SAME')+ae2.weight['b1'])#ae2
 #h = batch_norm(h)
 #h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
 #h = tf.nn.relu(tf.nn.conv2d(h,ae3.weight['w1'],[1,1,1,1],padding='SAME')+ae3.weight['b1'])#ae3
@@ -61,8 +61,8 @@ h = tf.nn.relu(tf.nn.conv2d(x,ae1.weight['w1'],[1,1,1,1],padding='SAME')+ae1.wei
 #h = batch_norm(h)
 #h = tf.image.resize_nearest_neighbor(h,[16,64])
 #h = batch_norm(h)
-#h = tf.nn.relu(batch_norm(tf.nn.conv2d_transpose(h,ae2.weight['w2'],[64,16,64,64],[1,1,1,1],padding='SAME')+ae2.weight['b2']))#ae2
-#h = tf.image.resize_bilinear(h,[32,128])
+h = tf.nn.relu(batch_norm(tf.nn.conv2d_transpose(h,ae2.weight['w2'],[64,16,64,64],[1,1,1,1],padding='SAME')+ae2.weight['b2']))#ae2
+h = tf.image.resize_bilinear(h,[32,128])
 output = tf.nn.relu(tf.nn.conv2d(h,ae1.weight['w2'],[1,1,1,1],padding='SAME')+ae1.weight['b2'])#ae1
 
 stackcost = tf.reduce_mean(tf.square(tf.subtract(x,output)))

@@ -62,15 +62,15 @@ class Autoencoder_conv2deconv(object):
         self.x = tf.placeholder(tf.float32,input_shape)
 
         #编码解码部分
-        self.input = batch_norm(self.x)
+        self.input = self.x
         self.maxpool = tf.nn.max_pool(self.input,[1,2,2,1],strides=[1,2,2,1],padding='SAME')
         self.encode = transfer_function(
-            batch_norm(
+
             tf.add(
                 tf.nn.conv2d(self.maxpool,self.weight['w1'],strides=[1,1,1,1],padding='SAME'),
                 self.weight['b1']
             )
-            )
+            
         )
 
         decoder_output_shape = [input_shape[0],input_shape[1]//2,input_shape[2]//2,input_shape[3]]
