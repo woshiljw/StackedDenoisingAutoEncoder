@@ -10,20 +10,20 @@ class Autoencoder_conv2conv(object):
 
         #编码解码部分
         self.encode = transfer_function(
-            batch_norm(
+            #batch_norm(
             tf.add(
                 tf.nn.conv2d(self.x,self.weight['w1'],[1,1,1,1],padding="SAME"),
                 self.weight['b1']
             )
-            )
+            #)
         )
         self.decode = transfer_function(
-            batch_norm(
+
             tf.add(
                 tf.nn.conv2d(self.encode,self.weight['w2'],[1,1,1,1],padding="SAME"),
                 self.weight['b2']
             )
-            )
+
         )
 
         self.cost = tf.reduce_mean(tf.square(tf.subtract(self.decode,self.x)))
@@ -62,7 +62,7 @@ class Autoencoder_conv2deconv(object):
         self.x = tf.placeholder(tf.float32,input_shape)
 
         #编码解码部分
-        self.input = self.x
+        self.input = batch_norm(self.x)
         self.maxpool = tf.nn.max_pool(self.input,[1,2,2,1],strides=[1,2,2,1],padding='SAME')
         self.encode = transfer_function(
             batch_norm(
@@ -75,16 +75,16 @@ class Autoencoder_conv2deconv(object):
 
         decoder_output_shape = [input_shape[0],input_shape[1]//2,input_shape[2]//2,input_shape[3]]
         self.decode = transfer_function(
-            batch_norm(
+
             tf.add(
                 tf.nn.conv2d_transpose(self.encode,self.weight['w2'],decoder_output_shape,[1,1,1,1],padding='SAME'),
                 self.weight['b2']
             )
-            )
+
         )
 
-        self.upscale = tf.image.resize_nearest_neighbor(self.decode,input_shape[1:3])
-        self.cost = tf.reduce_mean(tf.square(tf.subtract(self.upscale, self.input)))
+        self.upscale = tf.image.resize_bilinear(self.decode,input_shape[1:3])
+        self.cost = tf.reduce_mean(tf.square(tf.subtract(self.upscale, self.x)))
         self.optimizer = optimizer.minimize(self.cost)
 
     def _initialize_weights(self,name,encoder_filter_size,decoder_filter_size):

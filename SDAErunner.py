@@ -7,7 +7,7 @@ ae1 = Autoencoder_conv2conv('ae1',
                               [5,5,3,64],
                               [1,1,64,3],
                               [64,32,128,3],
-                              tf.train.AdamOptimizer(0.00085))
+                              tf.train.AdamOptimizer(0.00185))
 
 ae2 = Autoencoder_conv2deconv('ae2',
                               [3,3,64,96],
@@ -30,9 +30,9 @@ ae5 = Autoencoder_full2deconv('ae5',
 
 
 x = tf.placeholder(tf.float32,[64,32,128,3])
-h = tf.nn.relu(batch_norm(tf.nn.conv2d(x,ae1.weight['w1'],[1,1,1,1],padding='SAME')+ae1.weight['b1']))#ae1
-h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
-h = tf.nn.relu(batch_norm(tf.nn.conv2d(h,ae2.weight['w1'],[1,1,1,1],padding='SAME')+ae2.weight['b1']))#ae2
+h = tf.nn.relu(tf.nn.conv2d(x,ae1.weight['w1'],[1,1,1,1],padding='SAME')+ae1.weight['b1'])#ae1
+#h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
+#h = tf.nn.relu(batch_norm(tf.nn.conv2d(batch_norm(h),ae2.weight['w1'],[1,1,1,1],padding='SAME')+ae2.weight['b1']))#ae2
 #h = batch_norm(h)
 #h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
 #h = tf.nn.relu(tf.nn.conv2d(h,ae3.weight['w1'],[1,1,1,1],padding='SAME')+ae3.weight['b1'])#ae3
@@ -61,12 +61,12 @@ h = tf.nn.relu(batch_norm(tf.nn.conv2d(h,ae2.weight['w1'],[1,1,1,1],padding='SAM
 #h = batch_norm(h)
 #h = tf.image.resize_nearest_neighbor(h,[16,64])
 #h = batch_norm(h)
-h = tf.nn.relu(batch_norm(tf.nn.conv2d_transpose(h,ae2.weight['w2'],[64,16,64,64],[1,1,1,1],padding='SAME')+ae2.weight['b2']))#ae2
-h = tf.image.resize_nearest_neighbor(h,[32,128])
-output = tf.nn.relu(batch_norm(tf.nn.conv2d(h,ae1.weight['w2'],[1,1,1,1],padding='SAME')+ae1.weight['b2']))#ae1
+#h = tf.nn.relu(batch_norm(tf.nn.conv2d_transpose(h,ae2.weight['w2'],[64,16,64,64],[1,1,1,1],padding='SAME')+ae2.weight['b2']))#ae2
+#h = tf.image.resize_bilinear(h,[32,128])
+output = tf.nn.relu(tf.nn.conv2d(h,ae1.weight['w2'],[1,1,1,1],padding='SAME')+ae1.weight['b2'])#ae1
 
 stackcost = tf.reduce_mean(tf.square(tf.subtract(x,output)))
-opt = tf.train.AdamOptimizer(0.001).minimize(stackcost)
+opt = tf.train.AdamOptimizer(0.00185).minimize(stackcost)
 
 
 
@@ -75,7 +75,7 @@ sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 
 
-for epoch in range(30):
+for epoch in range(0):
     avg_cost = 0
     total_batch = int(len(data.train_data) / 64)
     data.num = 0
@@ -91,11 +91,11 @@ for i in range(total_batch):
     #print(data.test([-1,32,128,3]))
 
     cost = sess.run(ae1.total_cost(),feed_dict={ae1.x:data.test([-1, 32, 128, 3])})
-    avg_cost += cost / len(data.train_data) * 64
+    avg_cost += cost / len(data.test_data) * 64
 print("test cost: ",avg_cost)
 print("#################################ae1 train finished##################################")
 
-for epoch in range(2):
+for epoch in range(0):
     avg_cost = 0
     total_batch = int(len(data.train_data) / 64)
     data.num = 0
@@ -111,12 +111,12 @@ data.num = 0
 for i in range(total_batch):
     input1 = sess.run(ae1.filture(), feed_dict={ae1.x: data.test([-1, 32, 128, 3])})
     cost = sess.run(ae2.total_cost(), feed_dict={ae2.x: input1})
-    avg_cost += cost / len(data.train_data) * 64
+    avg_cost += cost / len(data.test_data) * 64
 print("test cost: ",avg_cost)
 print("#################################ae2 train finished##################################")
 
 
-for epoch in range(2):
+for epoch in range(0):
     avg_cost = 0
     total_batch = int(len(data.train_data) / 64)
     data.num = 0
@@ -134,11 +134,11 @@ for i in range(total_batch):
     input = sess.run(ae1.filture(), feed_dict={ae1.x: data.test([-1, 32, 128, 3])})
     input = sess.run(ae2.filture(), feed_dict={ae2.x: input})
     cost = sess.run(ae3.total_cost(), feed_dict={ae3.x: input})
-    avg_cost += cost / len(data.train_data) * 64
+    avg_cost += cost / len(data.test_data) * 64
 print("test cost: ",avg_cost)
 print("#################################ae3 train finished##################################")
 
-for epoch in range(2):
+for epoch in range(0):
     avg_cost = 0
     total_batch = int(len(data.train_data) / 64)
     data.num = 0
@@ -157,12 +157,12 @@ for i in range(total_batch):
     input = sess.run(ae2.filture(), feed_dict={ae2.x: input})
     input = sess.run(ae3.filture(), feed_dict={ae3.x: input})
     cost = sess.run(ae4.total_cost(), feed_dict={ae4.x: input})
-    avg_cost += cost / len(data.train_data) * 64
+    avg_cost += cost / len(data.test_data) * 64
 print("test cost: ",avg_cost)
 print("#################################ae4 train finished##################################")
 
 
-for epoch in range(2):
+for epoch in range(0):
     avg_cost = 0
     total_batch = int(len(data.train_data) / 64)
     data.num = 0
@@ -184,7 +184,7 @@ for i in range(total_batch):
     input = sess.run(ae4.encode, feed_dict={ae4.x: input})
 
     cost = sess.run(ae5.total_cost(), feed_dict={ae5.x: input})
-    avg_cost += cost / len(data.train_data) * 64
+    avg_cost += cost / len(data.test_data) * 64
 print("test cost: ",avg_cost)
 print("#################################ae5 train finished##################################")
 
