@@ -7,7 +7,7 @@ ae1 = Autoencoder_conv2conv('ae1',
                               [5,5,3,64],
                               [1,1,64,3],
                               [64,32,128,3],
-                              tf.train.AdamOptimizer(0.000185))
+                              tf.train.AdamOptimizer(0.00085))
 
 ae2 = Autoencoder_conv2deconv('ae2',
                               [3,3,64,96],
@@ -28,54 +28,54 @@ ae4 = Autoencoder_conv2deconv('ae4',
 ae5 = Autoencoder_full2deconv('ae5',
                               tf.train.AdamOptimizer(0.000185))
 
+
 x = tf.placeholder(tf.float32,[64,32,128,3])
-h = tf.nn.relu(tf.nn.conv2d(x,ae1.weight['w1'],[1,1,1,1],padding='SAME')+ae1.weight['b1'])#ae1
-h = batch_norm(h)
+h = tf.nn.relu(batch_norm(tf.nn.conv2d(x,ae1.weight['w1'],[1,1,1,1],padding='SAME')+ae1.weight['b1']))#ae1
 h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
-h = tf.nn.relu(tf.nn.conv2d(h,ae2.weight['w1'],[1,1,1,1],padding='SAME')+ae2.weight['b1'])#ae2
-h = batch_norm(h)
-h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
-h = tf.nn.relu(tf.nn.conv2d(h,ae3.weight['w1'],[1,1,1,1],padding='SAME')+ae3.weight['b1'])#ae3
-h = batch_norm(h)
-h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
-h = tf.nn.relu(tf.nn.conv2d(h,ae4.weight['w1'],[1,1,1,1],padding='SAME')+ae4.weight['b1'])#ae4
-h = batch_norm(h)
-h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
+h = tf.nn.relu(batch_norm(tf.nn.conv2d(h,ae2.weight['w1'],[1,1,1,1],padding='SAME')+ae2.weight['b1']))#ae2
+#h = batch_norm(h)
+#h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
+#h = tf.nn.relu(tf.nn.conv2d(h,ae3.weight['w1'],[1,1,1,1],padding='SAME')+ae3.weight['b1'])#ae3
+#h = batch_norm(h)
+#h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
+#h = tf.nn.relu(tf.nn.conv2d(h,ae4.weight['w1'],[1,1,1,1],padding='SAME')+ae4.weight['b1'])#ae4
+#h = batch_norm(h)
+#h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
 
 #############ae5
-flatten = tf.reshape(h,[64,-1])
-h = tf.nn.relu(tf.matmul(flatten,ae5.weight['w1'])+ae5.weight['b1'])
-h = batch_norm(h)
-h = tf.nn.relu(tf.matmul(h,ae5.weight['w2'])+ae5.weight['b2'])
-h = batch_norm(h)
-print(h.shape)
-print(ae5.weight['w3'].shape)
-h = tf.nn.relu(tf.nn.conv2d_transpose(tf.reshape(h,[64,2,8,64]),ae5.weight['w3'],[64,2,8,64],[1,1,1,1],padding='SAME')+ae5.weight['b3'])
-h = tf.image.resize_nearest_neighbor(h,[4,16])
+#flatten = tf.reshape(h,[64,-1])
+#h = tf.nn.relu(tf.matmul(flatten,ae5.weight['w1'])+ae5.weight['b1'])
+#h = batch_norm(h)
+#h = tf.nn.relu(tf.matmul(h,ae5.weight['w2'])+ae5.weight['b2'])
+#h = batch_norm(h)
+
+#h = tf.nn.relu(tf.nn.conv2d_transpose(tf.reshape(h,[64,2,8,64]),ae5.weight['w3'],[64,2,8,64],[1,1,1,1],padding='SAME')+ae5.weight['b3'])
+#h = batch_norm(h)
+#h = tf.image.resize_nearest_neighbor(h,[4,16])
 #############
-h = batch_norm(h)
-h = tf.nn.relu(tf.nn.conv2d_transpose(h,ae4.weight['w2'],[64,4,16,96],[1,1,1,1],padding='SAME')+ae4.weight['b2'])#ae4
-h = batch_norm(h)
-h = tf.image.resize_nearest_neighbor(h,[8,32])
-h = tf.nn.relu(tf.nn.conv2d_transpose(h,ae3.weight['w2'],[64,8,32,96],[1,1,1,1],padding='SAME')+ae3.weight['b2'])#ae3
-h = batch_norm(h)
-h = tf.image.resize_nearest_neighbor(h,[16,64])
-h = batch_norm(h)
-h = tf.nn.relu(tf.nn.conv2d_transpose(h,ae2.weight['w2'],[64,16,64,64],[1,1,1,1],padding='SAME')+ae2.weight['b2'])#ae2
-h = batch_norm(h)
+
+#h = tf.nn.relu(tf.nn.conv2d_transpose(h,ae4.weight['w2'],[64,4,16,96],[1,1,1,1],padding='SAME')+ae4.weight['b2'])#ae4
+#h = batch_norm(h)
+#h = tf.image.resize_nearest_neighbor(h,[8,32])
+#h = tf.nn.relu(tf.nn.conv2d_transpose(h,ae3.weight['w2'],[64,8,32,96],[1,1,1,1],padding='SAME')+ae3.weight['b2'])#ae3
+#h = batch_norm(h)
+#h = tf.image.resize_nearest_neighbor(h,[16,64])
+#h = batch_norm(h)
+h = tf.nn.relu(tf.nn.conv2d_transpose(batch_norm(h),ae2.weight['w2'],[64,16,64,64],[1,1,1,1],padding='SAME')+ae2.weight['b2'])#ae2
 h = tf.image.resize_nearest_neighbor(h,[32,128])
-h = batch_norm(h)
 output = tf.nn.relu(tf.nn.conv2d(h,ae1.weight['w2'],[1,1,1,1],padding='SAME')+ae1.weight['b2'])#ae1
 
 stackcost = tf.reduce_mean(tf.square(tf.subtract(x,output)))
 opt = tf.train.AdamOptimizer(0.001).minimize(stackcost)
+
+
 
 data = Data('../data/data.npz', 64)
 sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 
 
-for epoch in range(200):
+for epoch in range(30):
     avg_cost = 0
     total_batch = int(len(data.train_data) / 64)
     data.num = 0
@@ -95,7 +95,7 @@ for i in range(total_batch):
 print("test cost: ",avg_cost)
 print("#################################ae1 train finished##################################")
 
-for epoch in range(200):
+for epoch in range(2):
     avg_cost = 0
     total_batch = int(len(data.train_data) / 64)
     data.num = 0
@@ -116,7 +116,7 @@ print("test cost: ",avg_cost)
 print("#################################ae2 train finished##################################")
 
 
-for epoch in range(200):
+for epoch in range(2):
     avg_cost = 0
     total_batch = int(len(data.train_data) / 64)
     data.num = 0
@@ -138,7 +138,7 @@ for i in range(total_batch):
 print("test cost: ",avg_cost)
 print("#################################ae3 train finished##################################")
 
-for epoch in range(200):
+for epoch in range(2):
     avg_cost = 0
     total_batch = int(len(data.train_data) / 64)
     data.num = 0
@@ -159,10 +159,10 @@ for i in range(total_batch):
     cost = sess.run(ae4.total_cost(), feed_dict={ae4.x: input})
     avg_cost += cost / len(data.train_data) * 64
 print("test cost: ",avg_cost)
-print("#################################ae4 train finished#################################")
+print("#################################ae4 train finished##################################")
 
 
-for epoch in range(200):
+for epoch in range(2):
     avg_cost = 0
     total_batch = int(len(data.train_data) / 64)
     data.num = 0
@@ -187,6 +187,10 @@ for i in range(total_batch):
     avg_cost += cost / len(data.train_data) * 64
 print("test cost: ",avg_cost)
 print("#################################ae5 train finished##################################")
+
+
+
+
 
 
 

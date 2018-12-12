@@ -10,9 +10,11 @@ class Autoencoder_conv2conv(object):
 
         #编码解码部分
         self.encode = transfer_function(
+            batch_norm(
             tf.add(
                 tf.nn.conv2d(self.x,self.weight['w1'],[1,1,1,1],padding="SAME"),
                 self.weight['b1']
+            )
             )
         )
         self.decode = transfer_function(
@@ -58,12 +60,14 @@ class Autoencoder_conv2deconv(object):
         self.x = tf.placeholder(tf.float32,input_shape)
 
         #编码解码部分
-        self.input = batch_norm(self.x)
+        self.input = self.x
         self.maxpool = tf.nn.max_pool(self.input,[1,2,2,1],strides=[1,2,2,1],padding='SAME')
         self.encode = transfer_function(
+            batch_norm(
             tf.add(
                 tf.nn.conv2d(self.maxpool,self.weight['w1'],strides=[1,1,1,1],padding='SAME'),
                 self.weight['b1']
+            )
             )
         )
 
@@ -131,10 +135,6 @@ class Autoencoder_full2deconv(object):
                 tf.nn.conv2d_transpose(tf.reshape(self.fullconnect2,[64,2,8,64]),self.weight['w3'],[64,2,8,64],[1,1,1,1],padding='SAME'),
                 self.weight['b3'])
         )
-
-        print(self.input.shape)
-        print(self.deconv.shape)
-
         self.cost = tf.reduce_mean(tf.square(tf.subtract(self.inp,self.deconv)))
 
         self.optimizer = optimizer.minimize(self.cost)
