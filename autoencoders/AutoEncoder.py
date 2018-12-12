@@ -18,9 +18,11 @@ class Autoencoder_conv2conv(object):
             )
         )
         self.decode = transfer_function(
+            batch_norm(
             tf.add(
                 tf.nn.conv2d(self.encode,self.weight['w2'],[1,1,1,1],padding="SAME"),
                 self.weight['b2']
+            )
             )
         )
 
@@ -73,9 +75,11 @@ class Autoencoder_conv2deconv(object):
 
         decoder_output_shape = [input_shape[0],input_shape[1]//2,input_shape[2]//2,input_shape[3]]
         self.decode = transfer_function(
+            batch_norm(
             tf.add(
-                tf.nn.conv2d_transpose(batch_norm(self.encode),self.weight['w2'],decoder_output_shape,[1,1,1,1],padding='SAME'),
+                tf.nn.conv2d_transpose(self.encode,self.weight['w2'],decoder_output_shape,[1,1,1,1],padding='SAME'),
                 self.weight['b2']
+            )
             )
         )
 

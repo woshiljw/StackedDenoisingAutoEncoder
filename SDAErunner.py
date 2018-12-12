@@ -61,9 +61,9 @@ h = tf.nn.relu(batch_norm(tf.nn.conv2d(h,ae2.weight['w1'],[1,1,1,1],padding='SAM
 #h = batch_norm(h)
 #h = tf.image.resize_nearest_neighbor(h,[16,64])
 #h = batch_norm(h)
-h = tf.nn.relu(tf.nn.conv2d_transpose(batch_norm(h),ae2.weight['w2'],[64,16,64,64],[1,1,1,1],padding='SAME')+ae2.weight['b2'])#ae2
+h = tf.nn.relu(batch_norm(tf.nn.conv2d_transpose(h,ae2.weight['w2'],[64,16,64,64],[1,1,1,1],padding='SAME')+ae2.weight['b2']))#ae2
 h = tf.image.resize_nearest_neighbor(h,[32,128])
-output = tf.nn.relu(tf.nn.conv2d(h,ae1.weight['w2'],[1,1,1,1],padding='SAME')+ae1.weight['b2'])#ae1
+output = tf.nn.relu(batch_norm(tf.nn.conv2d(h,ae1.weight['w2'],[1,1,1,1],padding='SAME')+ae1.weight['b2']))#ae1
 
 stackcost = tf.reduce_mean(tf.square(tf.subtract(x,output)))
 opt = tf.train.AdamOptimizer(0.001).minimize(stackcost)
