@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 from Data import Data
+from tensorflow.contrib.layers import batch_norm
 
 x = tf.placeholder(tf.float32, [64, 32, 128, 3])
 h = tf.layers.conv2d(x, 64, [5, 5], [1, 1], activation=tf.nn.relu,
@@ -8,23 +9,25 @@ h = tf.layers.conv2d(x, 64, [5, 5], [1, 1], activation=tf.nn.relu,
                      bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
                      padding='SAME'
                      )
-h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
+h = tf.nn.dropout(h,0.75)
+h = tf.nn.avg_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
 h = tf.layers.conv2d(h,96,[3,3],[1,1],activation=tf.nn.relu,
                      kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
                      bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
                      padding='SAME'
                      )
-h = tf.layers.conv2d_transpose(h,64,[5,5],[1,1],activation=tf.nn.relu,
-                               kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
-                               bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
-                               padding='SAME'
-                               )
+h = tf.nn.dropout(h,0.75)
 h = tf.layers.conv2d_transpose(h,64,[5,5],[2,2],activation=tf.nn.relu,
                                kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
                                bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
                                padding='SAME'
                                )
-
+# h = tf.layers.conv2d_transpose(h,64,[2,2],[2,2],activation=tf.nn.relu,
+#                                kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
+#                                bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
+#                                padding='SAME'
+#                                )
+h = tf.nn.dropout(h,0.75)
 out = tf.layers.conv2d(h, 3, [1, 1], [1, 1], activation=tf.nn.relu,
                        kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
                        bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
@@ -32,7 +35,7 @@ out = tf.layers.conv2d(h, 3, [1, 1], [1, 1], activation=tf.nn.relu,
                        )
 
 stackcost = tf.reduce_mean(tf.square(tf.subtract(x, out)))
-opt = tf.train.AdamOptimizer().minimize(stackcost)
+opt = tf.train.AdamOptimizer(0.00008).minimize(stackcost)
 
 sess = tf.Session()
 sess.run(tf.initialize_all_variables())
