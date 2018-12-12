@@ -19,7 +19,7 @@ class Autoencoder_conv2conv(object):
         )
         self.decode = transfer_function(
             tf.add(
-                tf.nn.conv2d(batch_norm(self.encode),self.weight['w2'],[1,1,1,1],padding="SAME"),
+                tf.nn.conv2d(self.encode,self.weight['w2'],[1,1,1,1],padding="SAME"),
                 self.weight['b2']
             )
         )
