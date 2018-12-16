@@ -3,17 +3,18 @@ import tensorflow as tf
 from autoencoders.AutoEncoder import Autoencoder_conv2conv, Autoencoder_conv2deconv, Autoencoder_full2deconv
 from Data import Data
 from tensorflow.contrib.layers import batch_norm
+import cv2
 ae1 = Autoencoder_conv2conv('ae1',
                               [5,5,3,64],
                               [1,1,64,3],
                               [64,32,128,3],
-                              tf.train.AdamOptimizer(0.00185))
+                              tf.train.AdamOptimizer(0.00085))
 
 ae2 = Autoencoder_conv2deconv('ae2',
                               [3,3,64,96],
                               [5,5,64,96],
                               [64,32,128,64],
-                              tf.train.AdamOptimizer(0.0085))
+                              tf.train.AdamOptimizer(0.00085))
 ae3 = Autoencoder_conv2deconv('ae3',
                               [3,3,96,96],
                               [3,3,96,96],
@@ -57,7 +58,7 @@ h = tf.nn.relu(batch_norm(tf.nn.conv2d_transpose(h,ae2.weight['w2'],[64,32,128,6
 output = tf.nn.relu(tf.nn.conv2d(h,ae1.weight['w2'],[1,1,1,1],padding='SAME')+ae1.weight['b2'])#ae1
 
 stackcost = tf.reduce_mean(tf.square(tf.subtract(x,output)))
-opt = tf.train.AdamOptimizer(0.0185).minimize(stackcost)
+opt = tf.train.AdamOptimizer(0.00085).minimize(stackcost)
 
 
 
@@ -66,7 +67,7 @@ sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 
 
-for epoch in range(200):
+for epoch in range(0):
     avg_cost = 0
     total_batch = int(len(data.train_data) / 64)
     data.num = 0
@@ -86,12 +87,13 @@ for i in range(total_batch):
 print("test cost: ",avg_cost)
 print("#################################ae1 train finished##################################")
 
-for epoch in range(200):
+for epoch in range(0):
     avg_cost = 0
     total_batch = int(len(data.train_data) / 64)
     data.num = 0
     for i in range(total_batch):
         input = sess.run(ae1.encode,feed_dict={ae1.x:data.batch_size([-1, 32, 128, 3])})
+        #input = batch_norm(input)
         _,cost = sess.run(ae2.partial_fit(),feed_dict={ae2.x:input})
         avg_cost += cost / len(data.train_data) * 64
 
@@ -100,98 +102,112 @@ avg_cost = 0
 total_batch = int(len(data.test_data) / 64)
 data.num = 0
 for i in range(total_batch):
-    input1 = sess.run(ae1.filture(), feed_dict={ae1.x: data.test([-1, 32, 128, 3])})
-    cost = sess.run(ae2.total_cost(), feed_dict={ae2.x: input1})
+    input = sess.run(ae1.filture(), feed_dict={ae1.x: data.test([-1, 32, 128, 3])})
+    #input = batch_norm(input)
+    cost = sess.run(ae2.total_cost(), feed_dict={ae2.x: input})
     avg_cost += cost / len(data.test_data) * 64
 print("test cost: ",avg_cost)
 print("#################################ae2 train finished##################################")
 
 
-for epoch in range(200):
+for epoch in range(0):
     avg_cost = 0
     total_batch = int(len(data.train_data) / 64)
     data.num = 0
     for i in range(total_batch):
         input = sess.run(ae1.encode,feed_dict={ae1.x:data.batch_size([-1, 32, 128, 3])})
+        #input = batch_norm(input)
         input = sess.run(ae2.encode,feed_dict={ae2.x:input})
 
         _,cost = sess.run(ae3.partial_fit(),feed_dict={ae3.x:input})
         avg_cost += cost / len(data.train_data) * 64
     print("Epoch:{},Cost:{:.9f}".format(epoch, avg_cost))
-# avg_cost = 0
-# total_batch = int(len(data.test_data) / 64)
-# data.num = 0
-# for i in range(total_batch):
-#     input = sess.run(ae1.filture(), feed_dict={ae1.x: data.test([-1, 32, 128, 3])})
-#     input = sess.run(ae2.filture(), feed_dict={ae2.x: input})
-#     cost = sess.run(ae3.total_cost(), feed_dict={ae3.x: input})
-#     avg_cost += cost / len(data.test_data) * 64
-# print("test cost: ",avg_cost)
-# print("#################################ae3 train finished##################################")
+avg_cost = 0
+total_batch = int(len(data.test_data) / 64)
+data.num = 0
+for i in range(total_batch):
+    input = sess.run(ae1.filture(), feed_dict={ae1.x: data.test([-1, 32, 128, 3])})
+    #input = batch_norm(input)
+    input = sess.run(ae2.filture(), feed_dict={ae2.x: input})
+    cost = sess.run(ae3.total_cost(), feed_dict={ae3.x: input})
+    avg_cost += cost / len(data.test_data) * 64
+print("test cost: ",avg_cost)
+print("#################################ae3 train finished##################################")
 
-for epoch in range(200):
+for epoch in range(0):
     avg_cost = 0
     total_batch = int(len(data.train_data) / 64)
     data.num = 0
     for i in range(total_batch):
         input = sess.run(ae1.encode,feed_dict={ae1.x:data.batch_size([-1, 32, 128, 3])})
+        #input = batch_norm(input)
         input = sess.run(ae2.encode,feed_dict={ae2.x:input})
         input = sess.run(ae3.encode, feed_dict={ae3.x: input})
         _,cost = sess.run(ae4.partial_fit(),feed_dict={ae4.x:input})
         avg_cost += cost / len(data.train_data) * 64
     print("Epoch:{},Cost:{:.9f}".format(epoch, avg_cost))
-# avg_cost = 0
-# total_batch = int(len(data.test_data) / 64)
-# data.num = 0
-# for i in range(total_batch):
-#     input = sess.run(ae1.filture(), feed_dict={ae1.x: data.test([-1, 32, 128, 3])})
-#     input = sess.run(ae2.filture(), feed_dict={ae2.x: input})
-#     input = sess.run(ae3.filture(), feed_dict={ae3.x: input})
-#     cost = sess.run(ae4.total_cost(), feed_dict={ae4.x: input})
-#     avg_cost += cost / len(data.test_data) * 64
-# print("test cost: ",avg_cost)
-# print("#################################ae4 train finished##################################")
+avg_cost = 0
+total_batch = int(len(data.test_data) / 64)
+data.num = 0
+for i in range(total_batch):
+    input = sess.run(ae1.filture(), feed_dict={ae1.x: data.test([-1, 32, 128, 3])})
+    #input = batch_norm(input)
+    input = sess.run(ae2.filture(), feed_dict={ae2.x: input})
+    input = sess.run(ae3.filture(), feed_dict={ae3.x: input})
+    cost = sess.run(ae4.total_cost(), feed_dict={ae4.x: input})
+    avg_cost += cost / len(data.test_data) * 64
+print("test cost: ",avg_cost)
+print("#################################ae4 train finished##################################")
 
 
-for epoch in range(200):
+for epoch in range(0):
     avg_cost = 0
     total_batch = int(len(data.train_data) / 64)
     data.num = 0
     for i in range(total_batch):
         input = sess.run(ae1.filture(),feed_dict={ae1.x:data.batch_size([-1, 32, 128, 3])})
+        #input = batch_norm(input)
         input = sess.run(ae2.filture(),feed_dict={ae2.x:input})
         input = sess.run(ae3.filture(), feed_dict={ae3.x: input})
         input = sess.run(ae4.filture(), feed_dict={ae4.x: input})
         _,cost = sess.run(ae5.partial_fit(),feed_dict={ae5.x:input})
         avg_cost += cost / len(data.train_data) * 64
     print("Epoch:{},Cost:{:.9f}".format(epoch, avg_cost))
-# avg_cost = 0
-# total_batch = int(len(data.test_data) / 64)
-# data.num = 0
-# for i in range(total_batch):
-#     input = sess.run(ae1.encode, feed_dict={ae1.x: data.test([-1, 32, 128, 3])})
-#     input = sess.run(ae2.encode, feed_dict={ae2.x: input})
-#     input = sess.run(ae3.encode, feed_dict={ae3.x: input})
-#     input = sess.run(ae4.encode, feed_dict={ae4.x: input})
+avg_cost = 0
+total_batch = int(len(data.test_data) / 64)
+data.num = 0
+for i in range(total_batch):
+    input = sess.run(ae1.encode, feed_dict={ae1.x: data.test([-1, 32, 128, 3])})
+    #input = batch_norm(input)
+    input = sess.run(ae2.encode, feed_dict={ae2.x: input})
+    input = sess.run(ae3.encode, feed_dict={ae3.x: input})
+    input = sess.run(ae4.encode, feed_dict={ae4.x: input})
+
+    cost = sess.run(ae5.total_cost(), feed_dict={ae5.x: input})
+    avg_cost += cost / len(data.test_data) * 64
+print("test cost: ",avg_cost)
+print("#################################ae5 train finished##################################")
 #
-#     cost = sess.run(ae5.total_cost(), feed_dict={ae5.x: input})
-#     avg_cost += cost / len(data.test_data) * 64
-# print("test cost: ",avg_cost)
-# print("#################################ae5 train finished##################################")
-#
 
 
 
 
 
 
-for epoch in range(2000):
+for epoch in range(20000):
     avg_cost = 0
     total_batch = int(len(data.train_data) / 64)
     data.num = 0
     for i in range(total_batch):
         #input = sess.run(h,feed_dict={x:})
-        _, cost = sess.run((opt,stackcost), feed_dict={x:data.batch_size([-1, 32, 128, 3])})
+        traindata = data.batch_size([-1, 32, 128, 3])
+        _, cost = sess.run((opt,stackcost), feed_dict={x:traindata})
+        if epoch%100==0 and i%64==0:
+            rebuildimage = sess.run(output,feed_dict={x:traindata})
+            cv2.imwrite('./outputImage/input.hdr', traindata[0][:, :, ::-1])
+            #print(output.shape)
+            cv2.imwrite('./outputImage/' + str(epoch) + '_output.hdr',
+                        np.reshape(rebuildimage[0], [32, 128, 3])[:, :, ::-1])
         avg_cost += cost / len(data.train_data) * 64
 
     print("Epoch:{},Cost:{:.9f}".format(epoch, avg_cost))

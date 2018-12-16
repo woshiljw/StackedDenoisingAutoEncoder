@@ -17,13 +17,16 @@ class Autoencoder_conv2conv(object):
             )
             )
         )
+
+        self.h = tf.nn.relu(batch_norm(self.encode))#batch_norm()
+
         self.decode = transfer_function(
-            batch_norm(
+            #batch_norm(
             tf.add(
-                tf.nn.conv2d(self.encode,self.weight['w2'],[1,1,1,1],padding="SAME"),
+                tf.nn.conv2d(self.h,self.weight['w2'],[1,1,1,1],padding="SAME"),
                 self.weight['b2']
             )
-            )
+            #)
         )
 
         self.cost = tf.reduce_mean(tf.square(tf.subtract(self.decode,self.x)))
