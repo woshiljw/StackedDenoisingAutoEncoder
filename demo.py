@@ -3,6 +3,7 @@ import numpy as np
 from Data import Data
 import cv2
 from tensorflow.python.training import moving_averages
+
 def batch_normalization_layer(input):
     axis = list(range(len(input.get_shape())-1))
     mean,variance = tf.nn.moments(input,axis)
@@ -22,10 +23,10 @@ def batch_normalization_layer(input):
     return tf.nn.batch_normalization(input,mean,variance,beta,gamma,0.001)
 
 x = tf.placeholder(tf.float32, [64, 32, 128, 3])
-h = tf.nn.conv2d(x,tf.get_variable('w1',[5,5,3,64],tf.float32,tf.contrib.layers.xavier_initializer(uniform=False)),
+h = tf.nn.relu(tf.nn.conv2d(x,tf.get_variable('w1',[5,5,3,64],tf.float32,tf.contrib.layers.xavier_initializer(uniform=False)),
                  [1,1,1,1],padding='SAME')+tf.get_variable('b1',[64],tf.float32,tf.contrib.layers.xavier_initializer(uniform=False))
-h = batch_normalization_layer(h)
-h = tf.nn.relu(h)
+               )
+
 # h = tf.nn.relu(
 #
 #     tf.nn.conv2d(h,tf.get_variable('w3',[3,3,64,96],tf.float32,tf.contrib.layers.xavier_initializer(uniform=False)),
@@ -57,7 +58,7 @@ h = tf.nn.relu(h)
 # )
 # h = tf.nn.dropout(h,0.75)
 #h = tf.nn.relu(batch_norm(h))
-out = tf.nn.relu(
+out = tf.nn.sigmoid(
     tf.nn.conv2d(h,tf.get_variable('w2',[1,1,64,3],tf.float32,tf.contrib.layers.xavier_initializer(uniform=False)),
                  [1,1,1,1],padding='SAME')+tf.get_variable('b2',[3],tf.float32,tf.contrib.layers.xavier_initializer(uniform=False))
                             )
