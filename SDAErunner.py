@@ -109,7 +109,7 @@ sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 
 
-for epoch in range(1):
+for epoch in range(0):
     avg_cost = 0
     total_batch = int(len(data.train_data) / 64)
     data.num = 0
@@ -131,7 +131,7 @@ for i in range(total_batch):
 print("test cost: ",avg_cost)
 print("#################################ae1 train finished##################################")
 
-for epoch in range(1):
+for epoch in range(0):
     avg_cost = 0
     total_batch = int(len(data.train_data) / 64)
     data.num = 0
@@ -187,8 +187,8 @@ for epoch in range(1):
     data.num = 0
     for i in range(total_batch):
         traindata = data.batch_size([-1, 32, 128, 3])
-        input = sess.run(ae1.encode,feed_dict={ae1.x:traindata,ae1.y:traindata})
-        input = sess.run(ae2.encode,feed_dict={ae2.x:input,ae2.y:input})
+        input = sess.run(ae1.encode, feed_dict={ae1.x: traindata, ae1.y: traindata})
+        input = sess.run(ae2.encode, feed_dict={ae2.x: input, ae2.y: input})
         input = sess.run(ae3.encode, feed_dict={ae3.x: input,ae3.y: input})
         gaussianNoise = 0.01 * np.random.normal(size=np.shape(input))
         _,cost = sess.run(ae4.partial_fit(),feed_dict={ae4.x:input+gaussianNoise,ae4.y:input})
