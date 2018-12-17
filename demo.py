@@ -26,7 +26,8 @@ y = tf.placeholder(tf.float32, [64, 32, 128, 3])
 x = tf.placeholder(tf.float32, [64, 32, 128, 3])
 h = tf.nn.conv2d(x,tf.get_variable('w1',[5,5,3,64],tf.float32,tf.contrib.layers.xavier_initializer(uniform=False)),
                  [1,1,1,1],padding='SAME')+tf.get_variable('b1',[64],tf.float32,tf.contrib.layers.xavier_initializer(uniform=False))
-h = batch_normalization_layer(h,'conv1')
+h,b = batch_normalization_layer(h,'conv1')
+
 h = tf.nn.relu(h)
 
 
@@ -90,7 +91,8 @@ for epoch in range(20000):
         gaussianNoise = 0.01*np.random.normal(size=[64,12288]).reshape([64,32,128,3])
 
         traindata = data.batch_size([-1, 32, 128, 3])
-        _, cost = sess.run((opt, stackcost), feed_dict={x: traindata+gaussianNoise,y:traindata})
+        _, cost,be = sess.run((opt, stackcost,b), feed_dict={x: traindata+gaussianNoise,y:traindata})
+        print(be)
         avg_cost += cost / len(data.train_data) * 64
         if i % 50 == 0 and epoch %50==0:
             rebuildimage = sess.run(out, feed_dict={x: traindata})

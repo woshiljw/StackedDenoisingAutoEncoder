@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.contrib.layers import batch_norm
+from tensorflow.python.training import moving_averages
 #两个卷积层组成的自编码器
 class Autoencoder_conv2conv(object):
     def __init__(self,name,encoder_filter_size,decoder_filter_size
@@ -7,29 +7,28 @@ class Autoencoder_conv2conv(object):
                  transfer_function=tf.nn.relu):
         self.weight = self._initialize_weights(name,encoder_filter_size,decoder_filter_size)
         self.x = tf.placeholder(tf.float32,input_shape)
-
+        self.y = tf.placeholder(tf.float32, input_shape)
+        self.bnparam1 = self._initial_batchparam('_in_'+name,[64,32,128,64])
+        self.bnparam2 = self._initial_batchparam('_out_' + name, [64, 32, 128, 3])
         #编码解码部分
         self.encode = transfer_function(
-            batch_norm(
+            self.batch_normalization_layer(
             tf.add(
                 tf.nn.conv2d(self.x,self.weight['w1'],[1,1,1,1],padding="SAME"),
                 self.weight['b1']
-            )
-            )
+            ),param=self.bnparam1)
         )
-
-        self.h = tf.nn.relu(batch_norm(self.encode))#batch_norm()
 
         self.decode = transfer_function(
-            #batch_norm(
+            self.batch_normalization_layer(
             tf.add(
-                tf.nn.conv2d(self.h,self.weight['w2'],[1,1,1,1],padding="SAME"),
+                tf.nn.conv2d(self.encode,self.weight['w2'],[1,1,1,1],padding="SAME"),
                 self.weight['b2']
             )
-            #)
+            ,param=self.bnparam2)
         )
 
-        self.cost = tf.reduce_mean(tf.square(tf.subtract(self.decode,self.x)))
+        self.cost = tf.reduce_mean(tf.square(tf.subtract(self.decode,self.y)))
         self.optimizer = optimizer.minimize(self.cost)
 
     def _initialize_weights(self,name,encoder_filter_size,decoder_filter_size):
@@ -48,6 +47,26 @@ class Autoencoder_conv2conv(object):
                                             initializer=tf.contrib.layers.xavier_initializer(uniform=False))
         return all_weights
 
+    def _initial_batchparam(self,name,input_shape):
+        param = dict()
+        param['beta'] = tf.get_variable('beta' + name, initializer=tf.zeros_initializer, shape=input_shape[-1],
+                               dtype=tf.float32)
+        param['gamma'] = tf.get_variable('gamma' + name, initializer=tf.ones_initializer, shape=input_shape[-1],
+                                dtype=tf.float32)
+        param['moving_mean'] = tf.get_variable('moving_mean' + name, initializer=tf.zeros_initializer,
+                                           shape=input_shape[-1], dtype=tf.float32, trainable=False)
+        param['moving_variance'] = tf.get_variable('moving_var' + name, initializer=tf.zeros_initializer,
+                                               shape=input_shape[-1], dtype=tf.float32, trainable=False)
+        return param
+
+    def batch_normalization_layer(self,input,param):
+        axis = list(range(len(input.get_shape()) - 1))
+        mean, variance = tf.nn.moments(input, axis)
+        moving_averages.assign_moving_average(param['moving_mean'], mean, 0.999)
+        moving_averages.assign_moving_average(param['moving_variance'], variance, 0.999)
+
+        return tf.nn.batch_normalization(input, mean, variance, param['beta'], param['gamma'], 0.001)
+
     def partial_fit(self):
         return (self.optimizer,self.cost)
 
@@ -63,30 +82,35 @@ class Autoencoder_conv2deconv(object):
                  input_shape,optimizer,transfer_function=tf.nn.relu):
         self.weight = self._initialize_weights(name,encoder_filter_size,decoder_filter_size)
         self.x = tf.placeholder(tf.float32,input_shape)
+        self.y = tf.placeholder(tf.float32,input_shape)
+        self.bnparam1 = self._initial_batchparam('_in_' + name, encoder_filter_size)
+
+
 
         #编码解码部分
         self.input = self.x
         self.maxpool = tf.nn.max_pool(self.input,[1,2,2,1],strides=[1,2,2,1],padding='SAME')
         self.encode = transfer_function(
-            batch_norm(
+            self.batch_normalization_layer(
             tf.add(
                 tf.nn.conv2d(self.maxpool,self.weight['w1'],strides=[1,1,1,1],padding='SAME'),
                 self.weight['b1']
             )
-            )
+            ,param=self.bnparam1)
         )
 
         decoder_output_shape = [input_shape[0],input_shape[1],input_shape[2],input_shape[3]]
+        self.bnparam2 = self._initial_batchparam('_out_' + name, decoder_output_shape)
         self.decode = transfer_function(
-            batch_norm(
+            self.batch_normalization_layer(
             tf.add(
                 tf.nn.conv2d_transpose(self.encode,self.weight['w2'],decoder_output_shape,[1,2,2,1],padding='SAME'),
                 self.weight['b2']
             )
-            )
+            ,param=self.bnparam2)
         )
 
-        self.cost = tf.reduce_mean(tf.square(tf.subtract(self.decode, self.x)))
+        self.cost = tf.reduce_mean(tf.square(tf.subtract(self.decode, self.y)))
         self.optimizer = optimizer.minimize(self.cost)
 
     def _initialize_weights(self,name,encoder_filter_size,decoder_filter_size):
@@ -104,6 +128,26 @@ class Autoencoder_conv2deconv(object):
                                             shape=[decoder_filter_size[2]],
                                             initializer=tf.contrib.layers.xavier_initializer(uniform=False))
         return all_weights
+
+    def _initial_batchparam(self,name,input_shape):
+        param = dict()
+        param['beta'] = tf.get_variable('beta' + name, initializer=tf.zeros_initializer, shape=input_shape[-1],
+                               dtype=tf.float32)
+        param['gamma'] = tf.get_variable('gamma' + name, initializer=tf.ones_initializer, shape=input_shape[-1],
+                                dtype=tf.float32)
+        param['moving_mean'] = tf.get_variable('moving_mean' + name, initializer=tf.zeros_initializer,
+                                           shape=input_shape[-1], dtype=tf.float32, trainable=False)
+        param['moving_variance'] = tf.get_variable('moving_var' + name, initializer=tf.zeros_initializer,
+                                               shape=input_shape[-1], dtype=tf.float32, trainable=False)
+        return param
+
+    def batch_normalization_layer(self,input,param):
+        axis = list(range(len(input.get_shape()) - 1))
+        mean, variance = tf.nn.moments(input, axis)
+        moving_averages.assign_moving_average(param['moving_mean'], mean, 0.999)
+        moving_averages.assign_moving_average(param['moving_variance'], variance, 0.999)
+
+        return tf.nn.batch_normalization(input, mean, variance, param['beta'], param['gamma'], 0.001)
 
     def partial_fit(self):
         return (self.optimizer,self.cost)
