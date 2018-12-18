@@ -31,6 +31,7 @@ class Autoencoder_conv2conv(object):
         self.cost = tf.reduce_mean(tf.square(tf.subtract(self.decode,self.y)))
         self.optimizer = optimizer.minimize(self.cost)
 
+    #权值初始化
     def _initialize_weights(self,name,encoder_filter_size,decoder_filter_size):
         all_weights = dict()
         all_weights['w1'] = tf.get_variable(name=name + '_w1',
@@ -47,6 +48,7 @@ class Autoencoder_conv2conv(object):
                                             initializer=tf.contrib.layers.xavier_initializer(uniform=False))
         return all_weights
 
+    #batchnorm参数的初始化
     def _initial_batchparam(self,name,input_shape):
         param = dict()
         param['beta'] = tf.get_variable('beta' + name, initializer=tf.zeros_initializer, shape=input_shape[-1],
@@ -59,6 +61,7 @@ class Autoencoder_conv2conv(object):
                                                shape=input_shape[-1], dtype=tf.float32, trainable=False)
         return param
 
+    #batchnorm层
     def batch_normalization_layer(self,input,param):
         axis = list(range(len(input.get_shape()) - 1))
         mean, variance = tf.nn.moments(input, axis)

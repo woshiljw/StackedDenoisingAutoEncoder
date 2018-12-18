@@ -3,6 +3,7 @@ import numpy as np
 from Data import Data
 import cv2
 from tensorflow.python.training import moving_averages
+from tensorflow.contrib.layers import batch_norm
 
 def batch_normalization_layer(input,name):
     axis = list(range(len(input.get_shape())-1))
@@ -24,58 +25,56 @@ def batch_normalization_layer(input,name):
 
 y = tf.placeholder(tf.float32, [64, 32, 128, 3])
 x = tf.placeholder(tf.float32, [64, 32, 128, 3])
-h = tf.nn.conv2d(x,tf.get_variable('w1',[5,5,3,64],tf.float32,tf.contrib.layers.xavier_initializer(uniform=False)),
-                 [1,1,1,1],padding='SAME')+tf.get_variable('b1',[64],tf.float32,tf.contrib.layers.xavier_initializer(uniform=False))
-h,b = batch_normalization_layer(h,'conv1')
-
+h = tf.layers.conv2d(x,64,[5,5],[1,1],padding='SAME')
+h = batch_norm(h)
 h = tf.nn.relu(h)
+h = tf.layers.max_pooling2d(h,[2,2],[2,2])
 
 
-# h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
-# h = tf.nn.conv2d(h,tf.get_variable('w3',[3,3,64,96],tf.float32,tf.contrib.layers.xavier_initializer(uniform=False)),
-#                  [1,1,1,1],padding='SAME')+tf.get_variable('b3',[96],tf.float32,tf.contrib.layers.xavier_initializer(uniform=False))
-# h = batch_normalization_layer(h,'conv2')
-# h = tf.nn.relu(h)
-#
-#
-# h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
-# h = tf.nn.conv2d(h,tf.get_variable('w5',[3,3,96,96],tf.float32,tf.contrib.layers.xavier_initializer(uniform=False)),
-#                  [1,1,1,1],padding='SAME')+tf.get_variable('b5',[96],tf.float32,tf.contrib.layers.xavier_initializer(uniform=False))
-# h = batch_normalization_layer(h,'conv3')
-# h = tf.nn.relu(h)
-#
-#
-# h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
-# h = tf.nn.conv2d(h,tf.get_variable('w7',[3,3,96,64],tf.float32,tf.contrib.layers.xavier_initializer(uniform=False)),
-#                  [1,1,1,1],padding='SAME')+tf.get_variable('b7',[64],tf.float32,tf.contrib.layers.xavier_initializer(uniform=False))
-# h = batch_normalization_layer(h,'conv4')
-# h = tf.nn.relu(h)
-#
-#
-#
-#
-# h = tf.nn.conv2d_transpose(h,tf.get_variable('w8',[3,3,96,64],tf.float32,tf.contrib.layers.xavier_initializer(uniform=False)),
-#                            [64,8,32,96],[1,2,2,1],padding='SAME')+tf.get_variable('b8',[96],tf.float32,tf.contrib.layers.xavier_initializer(uniform=False))
-# h = batch_normalization_layer(h,'deconv5')
-# h = tf.nn.relu(h)
-#
-#
-# h = tf.nn.conv2d_transpose(h,tf.get_variable('w6',[3,3,96,96],tf.float32,tf.contrib.layers.xavier_initializer(uniform=False)),
-#                            [64,16,64,96],[1,2,2,1],padding='SAME')+tf.get_variable('b6',[96],tf.float32,tf.contrib.layers.xavier_initializer(uniform=False))
-# h = batch_normalization_layer(h,'deconv2')
-# h = tf.nn.relu(h)
-#
-#
-# h = tf.nn.conv2d_transpose(h,tf.get_variable('w4',[5,5,64,96],tf.float32,tf.contrib.layers.xavier_initializer(uniform=False)),
-#                            [64,32,128,64],[1,2,2,1],padding='SAME')+tf.get_variable('b4',[64],tf.float32,tf.contrib.layers.xavier_initializer(uniform=False))
-# h = batch_normalization_layer(h,'deconv1')
-# h = tf.nn.relu(h)
+h = tf.layers.conv2d(h,96,[3,3],[1,1],padding='SAME')
+h = batch_norm(h)
+h = tf.nn.relu(h)
+h = tf.layers.max_pooling2d(h,[2,2],[2,2])
 
 
-out = tf.nn.conv2d(h,tf.get_variable('w2',[1,1,64,3],tf.float32,tf.contrib.layers.xavier_initializer(uniform=False)),
-                 [1,1,1,1],padding='SAME')+tf.get_variable('b2',[3],tf.float32,tf.contrib.layers.xavier_initializer(uniform=False))
+h = tf.layers.conv2d(h,96,[3,3],[1,1],padding='SAME')
+h = batch_norm(h)
+h = tf.nn.relu(h)
+h = tf.layers.max_pooling2d(h,[2,2],[2,2])
 
-out = batch_normalization_layer(out,'out')
+
+h = tf.layers.conv2d(h,64,[3,3],[1,1],padding='SAME')
+h = batch_norm(h)
+h = tf.nn.relu(h)
+h = tf.layers.max_pooling2d(h,[2,2],[2,2])
+
+
+h = tf.layers.conv2d(h,64,[3,3],[1,1],padding='SAME')
+h = batch_norm(h)
+h = tf.nn.relu(h)
+h = tf.image.resize_nearest_neighbor(h,[4,16])
+
+
+h = tf.layers.conv2d(h,96,[3,3],[1,1],padding='SAME')
+h = batch_norm(h)
+h = tf.nn.relu(h)
+h = tf.image.resize_nearest_neighbor(h,[8,32])
+
+
+h = tf.layers.conv2d(h,96,[3,3],[1,1],padding='SAME')
+h = batch_norm(h)
+h = tf.nn.relu(h)
+h = tf.image.resize_nearest_neighbor(h,[16,64])
+
+
+h = tf.layers.conv2d(h,64,[5,5],[1,1],padding='SAME')
+h = batch_norm(h)
+h = tf.nn.relu(h)
+h = tf.image.resize_nearest_neighbor(h,[32,128])
+
+
+h = tf.layers.conv2d(h,3,[1,1],[1,1],padding='SAME')
+out = batch_norm(h)
 out = tf.nn.relu(out)
 
 stackcost = tf.reduce_mean(tf.square(tf.subtract(y, out)))
@@ -94,8 +93,8 @@ for epoch in range(20000):
         gaussianNoise = 0.01*np.random.normal(size=[64,12288]).reshape([64,32,128,3])
 
         traindata = data.batch_size([-1, 32, 128, 3])
-        _, cost,be = sess.run((opt, stackcost,b), feed_dict={x: traindata+gaussianNoise,y:traindata})
-        print(be)
+        _, cost = sess.run((opt, stackcost), feed_dict={x: traindata+gaussianNoise,y:traindata})
+
         avg_cost += cost / len(data.train_data) * 64
         if i % 50 == 0 and epoch %50==0:
             rebuildimage = sess.run(out, feed_dict={x: traindata})
