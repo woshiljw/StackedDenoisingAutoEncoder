@@ -75,8 +75,11 @@ h = tf.nn.relu(h)
 out = tf.nn.conv2d(h,tf.get_variable('w2',[1,1,64,3],tf.float32,tf.contrib.layers.xavier_initializer(uniform=False)),
                  [1,1,1,1],padding='SAME')+tf.get_variable('b2',[3],tf.float32,tf.contrib.layers.xavier_initializer(uniform=False))
 
+out = batch_normalization_layer(out,'out')
+out = tf.nn.relu(out)
+
 stackcost = tf.reduce_mean(tf.square(tf.subtract(y, out)))
-opt = tf.train.AdamOptimizer(0.0085).minimize(stackcost)
+opt = tf.train.AdamOptimizer(0.85).minimize(stackcost)
 
 sess = tf.Session()
 sess.run(tf.initialize_all_variables())

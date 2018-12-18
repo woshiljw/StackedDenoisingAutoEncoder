@@ -9,26 +9,26 @@ ae1 = Autoencoder_conv2conv('ae1',
                               [5,5,3,64],
                               [1,1,64,3],
                               [64,32,128,3],
-                              tf.train.AdamOptimizer(0.00085))
+                              tf.train.AdamOptimizer(0.85))
 
 ae2 = Autoencoder_conv2deconv('ae2',
                               [3,3,64,96],
                               [5,5,64,96],
                               [64,32,128,64],
-                              tf.train.AdamOptimizer(0.00085))
+                              tf.train.AdamOptimizer(0.85))
 ae3 = Autoencoder_conv2deconv('ae3',
                               [3,3,96,96],
                               [3,3,96,96],
                               [64,16,64,96],
-                              tf.train.AdamOptimizer(0.00085))
+                              tf.train.AdamOptimizer(0.85))
 
 ae4 = Autoencoder_conv2deconv('ae4',
                               [3,3,96,64],
                               [3,3,96,64],
                               [64,8,32,96],
-                              tf.train.AdamOptimizer(0.00085))
+                              tf.train.AdamOptimizer(0.85))
 ae5 = Autoencoder_full2deconv('ae5',
-                              tf.train.AdamOptimizer(0.000185))
+                              tf.train.AdamOptimizer(0.185))
 
 
 def batch_normalization_layer(input,moving_mean,moving_variance,beta,gamma):
@@ -100,7 +100,7 @@ h = batch_normalization_layer(h,ae1.bnparam2['moving_mean'],ae1.bnparam2['moving
 output = tf.nn.relu(h)
 #autoencoder1
 stackcost = tf.reduce_mean(tf.square(tf.subtract(y,output)))
-opt = tf.train.AdamOptimizer(0.00085).minimize(stackcost)
+opt = tf.train.AdamOptimizer(0.185).minimize(stackcost)
 
 
 
@@ -109,13 +109,14 @@ sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 
 
-for epoch in range(0):
+for epoch in range(200):
     avg_cost = 0
     total_batch = int(len(data.train_data) / 64)
     data.num = 0
+    gaussianNoise = 0.01 * np.random.normal(size=[64, 12288]).reshape([64, 32, 128, 3])
     for i in range(total_batch):
         traindata = data.batch_size([-1, 32, 128, 3])
-        gaussianNoise = 0.01 * np.random.normal(size=[64, 12288]).reshape([64, 32, 128, 3])
+
         _,cost = sess.run(ae1.partial_fit(),feed_dict={ae1.x:traindata+gaussianNoise,ae1.y:traindata})
         avg_cost += cost / len(data.train_data) * 64
 
@@ -131,14 +132,15 @@ for i in range(total_batch):
 print("test cost: ",avg_cost)
 print("#################################ae1 train finished##################################")
 
-for epoch in range(0):
+for epoch in range(200):
     avg_cost = 0
     total_batch = int(len(data.train_data) / 64)
     data.num = 0
+    gaussianNoise = 0.01 * np.random.normal(size=[64,32,128,64])
     for i in range(total_batch):
         traindata = data.batch_size([-1, 32, 128, 3])
         input = sess.run(ae1.encode,feed_dict={ae1.x:traindata,ae1.y:traindata})
-        gaussianNoise = 0.01 * np.random.normal(size=np.shape(input))
+
         _,cost = sess.run(ae2.partial_fit(),feed_dict={ae2.x:input+gaussianNoise,ae2.y:input})
         avg_cost += cost / len(data.train_data) * 64
 
@@ -156,15 +158,16 @@ print("test cost: ",avg_cost)
 print("#################################ae2 train finished##################################")
 
 
-for epoch in range(1):
+for epoch in range(200):
     avg_cost = 0
     total_batch = int(len(data.train_data) / 64)
     data.num = 0
+    gaussianNoise = 0.01 * np.random.normal(size=[64,16,64,96])
     for i in range(total_batch):
         traindata = data.batch_size([-1, 32, 128, 3])
         input = sess.run(ae1.encode, feed_dict={ae1.x: traindata, ae1.y: traindata})
         input = sess.run(ae2.encode,feed_dict={ae2.x:input,ae2.y:input})
-        gaussianNoise = 0.01 * np.random.normal(size=np.shape(input))
+
         _,cost = sess.run(ae3.partial_fit(),feed_dict={ae3.x:input+gaussianNoise,ae3.y:input})
         avg_cost += cost / len(data.train_data) * 64
     print("Epoch:{},Cost:{:.9f}".format(epoch, avg_cost))
@@ -181,16 +184,17 @@ for i in range(total_batch):
 print("test cost: ",avg_cost)
 print("#################################ae3 train finished##################################")
 
-for epoch in range(1):
+for epoch in range(200):
     avg_cost = 0
     total_batch = int(len(data.train_data) / 64)
     data.num = 0
+    gaussianNoise = 0.01 * np.random.normal(size=[64,8,32,96])
     for i in range(total_batch):
         traindata = data.batch_size([-1, 32, 128, 3])
         input = sess.run(ae1.encode, feed_dict={ae1.x: traindata, ae1.y: traindata})
         input = sess.run(ae2.encode, feed_dict={ae2.x: input, ae2.y: input})
         input = sess.run(ae3.encode, feed_dict={ae3.x: input,ae3.y: input})
-        gaussianNoise = 0.01 * np.random.normal(size=np.shape(input))
+
         _,cost = sess.run(ae4.partial_fit(),feed_dict={ae4.x:input+gaussianNoise,ae4.y:input})
         avg_cost += cost / len(data.train_data) * 64
     print("Epoch:{},Cost:{:.9f}".format(epoch, avg_cost))
