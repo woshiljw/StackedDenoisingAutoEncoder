@@ -5,41 +5,64 @@ from Data import Data
 from tensorflow.contrib.layers import batch_norm
 import cv2
 from tensorflow.python.training import moving_averages
+
+data = Data('../data/data.npz', 64)#读入数据
+
+#定义第一层自动ＤＡＥ
 ae1 = Autoencoder_conv2conv('ae1',
-                              [5,5,3,64],
-                              [1,1,64,3],
-                              [64,32,128,3],
+                              [5,5,3,64],#输入卷积核的大小
+                              [1,1,64,3],#输出卷积核的大小
+                              [64,32,128,3],#输入该层的数据的形状
                               tf.train.AdamOptimizer(0.85))
 
+#定义第二层自动ＤＡＥ
 ae2 = Autoencoder_conv2deconv('ae2',
-                              [3,3,64,96],
-                              [5,5,64,96],
-                              [64,32,128,64],
-                              tf.train.AdamOptimizer(0.85))
-ae3 = Autoencoder_conv2deconv('ae3',
-                              [3,3,96,96],
-                              [3,3,96,96],
-                              [64,16,64,96],
+                              [3,3,64,96],#输入卷积核的大小
+                              [5,5,64,96],#输出卷积核的大小
+                              [64,32,128,64],#输入该层的数据的形状
                               tf.train.AdamOptimizer(0.85))
 
-ae4 = Autoencoder_conv2deconv('ae4',
-                              [3,3,96,64],
-                              [3,3,96,64],
-                              [64,8,32,96],
+#定义第三层自动ＤＡＥ
+ae3 = Autoencoder_conv2deconv('ae3',
+                              [3,3,96,96],#输入卷积核的大小
+                              [3,3,96,96],#输出卷积核的大小
+                              [64,16,64,96],#输入该层的数据的形状
                               tf.train.AdamOptimizer(0.85))
+
+#定义第四层自动ＤＡＥ
+ae4 = Autoencoder_conv2deconv('ae4',
+                              [3,3,96,64],#输入卷积核的大小
+                              [3,3,96,64],#输出卷积核的大小
+                              [64,8,32,96],#输入该层的数据的形状
+                              tf.train.AdamOptimizer(0.85))
+
+#定义全连接层提取出64维参数
 ae5 = Autoencoder_full2deconv('ae5',
                               tf.train.AdamOptimizer(0.185))
 
+'''
+由于将图像特征提取到64维后训练结果很差，因此未使用ae5
 
+'''
+
+#定义ｂａｔｃｈｎｏｒｍ层
 def batch_normalization_layer(input,moving_mean,moving_variance,beta,gamma):
     axis = list(range(len(input.get_shape())-1))
-    mean,variance = tf.nn.moments(input,axis)
-    moving_averages.assign_moving_average(moving_mean,mean,0.999)
-    moving_averages.assign_moving_average(moving_variance,variance,0.999)
+    mean,variance = tf.nn.moments(input,axis)#计算当前epoch的均值与方差
+    moving_averages.assign_moving_average(moving_mean,mean,0.999)#修改滑动均值
+    moving_averages.assign_moving_average(moving_variance,variance,0.999)#修改滑动方差
+    '''计算滑动均值和滑动方差是为了在测试集上使用，使用未知样本进行计算时，使用滑动均值和滑动方差来代替未知样本的均值和方差'''
     return tf.nn.batch_normalization(input,mean,variance,beta,gamma,0.001)
 
 
+'''
+定义ＳＤＡＥ的计算图（该部分只是定义图，并未训练！！！）
+该部分使用之前定义的ＤＡＥ的参数来继续训练
+'''
 #autoencoder1
+'''
+卷积核的参数保存在类的weights字典里,batchnorm层的参数保存在bnparam内，具体方式定义在类里
+'''
 y = tf.placeholder(tf.float32,[64,32,128,3])
 x = tf.placeholder(tf.float32,[64,32,128,3])
 h = tf.nn.conv2d(x,ae1.weight['w1'],[1,1,1,1],padding='SAME')+ae1.weight['b1']
@@ -104,18 +127,18 @@ opt = tf.train.AdamOptimizer(0.185).minimize(stackcost)
 
 
 
-data = Data('../data/data.npz', 64)
+
 sess = tf.Session()
 sess.run(tf.global_variables_initializer())
 
-
+#训练AutoEncoder1
 for epoch in range(200):
-    avg_cost = 0
+    avg_cost = 0#定义平均ｃｏｓｔ
     total_batch = int(len(data.train_data) / 64)
     data.num = 0
-    gaussianNoise = 0.01 * np.random.normal(size=[64, 12288]).reshape([64, 32, 128, 3])
+    gaussianNoise = 0.01 * np.random.normal(size=[64, 12288]).reshape([64, 32, 128, 3])#0.01高斯噪声
     for i in range(total_batch):
-        traindata = data.batch_size([-1, 32, 128, 3])
+        traindata = data.batch_size([64, 32, 128, 3])#读取[64, 32, 128, 3]大小的数据
 
         _,cost = sess.run(ae1.partial_fit(),feed_dict={ae1.x:traindata+gaussianNoise,ae1.y:traindata})
         avg_cost += cost / len(data.train_data) * 64
@@ -124,6 +147,7 @@ for epoch in range(200):
 avg_cost = 0
 total_batch = int(len(data.test_data) / 64)
 data.num = 0
+#测试AutoEncoder1
 for i in range(total_batch):
     #print(data.test([-1,32,128,3]))
     testdata = data.test([-1, 32, 128, 3])
@@ -245,7 +269,7 @@ print("#################################ae4 train finished######################
 
 
 
-
+'''最终训练SDAE'''
 for epoch in range(20000):
     avg_cost = 0
     total_batch = int(len(data.train_data) / 64)
@@ -256,6 +280,9 @@ for epoch in range(20000):
         gaussianNoise = 0.01 * np.random.normal(size=np.shape(traindata))
         _, cost = sess.run((opt,stackcost), feed_dict={x:traindata+gaussianNoise,y:traindata})
         if epoch%100==0 and i%64==0:
+            '''
+            每100个epoch保存一个输出的图像
+            '''
             rebuildimage = sess.run(output,feed_dict={x:traindata})
             cv2.imwrite('./outputImage/input.hdr', traindata[0][:, :, ::-1])
             #print(output.shape)

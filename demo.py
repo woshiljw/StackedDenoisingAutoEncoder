@@ -27,50 +27,51 @@ y = tf.placeholder(tf.float32, [64, 32, 128, 3])
 x = tf.placeholder(tf.float32, [64, 32, 128, 3])
 h = tf.layers.conv2d(x,64,[5,5],[1,1],padding='SAME')
 h = tf.nn.relu(h)
-h = tf.nn.dropout(h,0.8)
-# h = tf.layers.max_pooling2d(h,[2,2],[2,2])
-#
-#
-# h = tf.layers.conv2d(h,96,[3,3],[1,1],padding='SAME')
-# h = batch_norm(h,scale=True)
-# h = tf.nn.relu(h)
-# h = tf.layers.max_pooling2d(h,[2,2],[2,2])
-#
-#
-# h = tf.layers.conv2d(h,96,[3,3],[1,1],padding='SAME')
-# h = batch_norm(h,scale=True)
-# h = tf.nn.relu(h)
-# h = tf.layers.max_pooling2d(h,[2,2],[2,2])
-#
-#
-# h = tf.layers.conv2d(h,64,[3,3],[1,1],padding='SAME')
-# h = batch_norm(h,scale=True)
-# h = tf.nn.relu(h)
-# h = tf.layers.max_pooling2d(h,[2,2],[2,2])
-#
-#
-# h = tf.layers.conv2d(h,64,[3,3],[1,1],padding='SAME')
-# h = batch_norm(h,scale=True)
-# h = tf.nn.relu(h)
-# h = tf.image.resize_nearest_neighbor(h,[4,16])
-#
-#
-# h = tf.layers.conv2d(h,96,[3,3],[1,1],padding='SAME')
-# h = batch_norm(h,scale=True)
-# h = tf.nn.relu(h)
-# h = tf.image.resize_nearest_neighbor(h,[8,32])
-#
-#
-# h = tf.layers.conv2d(h,96,[3,3],[1,1],padding='SAME')
-# h = batch_norm(h,scale=True)
-# h = tf.nn.relu(h)
-# h = tf.image.resize_nearest_neighbor(h,[16,64])
-#
-#
-# h = tf.layers.conv2d(h,64,[5,5],[1,1],padding='SAME')
-# h = batch_norm(h,scale=True)
-# h = tf.nn.relu(h)
-# h = tf.image.resize_nearest_neighbor(h,[32,128])
+h = batch_norm(h)
+h = tf.layers.max_pooling2d(h,[2,2],[2,2])
+
+
+h = tf.layers.conv2d(h,96,[3,3],[1,1],padding='SAME')
+h = tf.nn.relu(h)
+h = batch_norm(h)
+h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
+
+
+h = tf.layers.conv2d(h,96,[3,3],[1,1],padding='SAME')
+h = tf.nn.relu(h)
+h = batch_norm(h)
+h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
+
+
+h = tf.layers.conv2d(h,64,[3,3],[1,1],padding='SAME')
+h = tf.nn.relu(h)
+h = batch_norm(h)
+h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
+
+
+
+h = tf.layers.conv2d(h,64,[3,3],[1,1],padding='SAME')
+h = tf.nn.relu(h)
+h = batch_norm(h)
+h = tf.image.resize_nearest_neighbor(h,[4,16])
+
+
+h = tf.layers.conv2d(h,96,[3,3],[1,1],padding='SAME')
+h = tf.nn.relu(h)
+h = batch_norm(h)
+h = tf.image.resize_nearest_neighbor(h,[8,32])
+
+
+h = tf.layers.conv2d(h,96,[3,3],[1,1],padding='SAME')
+h = tf.nn.relu(h)
+h = batch_norm(h)
+h = tf.image.resize_nearest_neighbor(h,[16,64])
+
+
+h = tf.layers.conv2d(h,64,[5,5],[1,1],padding='SAME')
+h = tf.nn.relu(h)
+h = batch_norm(h)
+h = tf.image.resize_nearest_neighbor(h,[32,128])
 
 
 out = tf.layers.conv2d(h,3,[1,1],[1,1],padding='SAME')

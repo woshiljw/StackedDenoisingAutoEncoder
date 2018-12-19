@@ -1,15 +1,26 @@
 import tensorflow as tf
 from tensorflow.python.training import moving_averages
+import numpy as np
 #两个卷积层组成的自编码器
 class Autoencoder_conv2conv(object):
     def __init__(self,name,encoder_filter_size,decoder_filter_size
                  ,input_shape,optimizer,
                  transfer_function=tf.nn.relu):
+        '''
+        :param name:
+        :param encoder_filter_size: 输入卷积核大小
+        :param decoder_filter_size: 输出卷积核大小
+        :param input_shape: 输入数据形状
+        :param optimizer: 优化器
+        :param transfer_function: 激活函数
+        '''
         self.weight = self._initialize_weights(name,encoder_filter_size,decoder_filter_size)
+        self.bnparam1 = self._initial_batchparam('_in_' + name, [64, 32, 128, 64])
+        self.bnparam2 = self._initial_batchparam('_out_' + name, [64, 32, 128, 3])
+
         self.x = tf.placeholder(tf.float32,input_shape)
         self.y = tf.placeholder(tf.float32, input_shape)
-        self.bnparam1 = self._initial_batchparam('_in_'+name,[64,32,128,64])
-        self.bnparam2 = self._initial_batchparam('_out_' + name, [64, 32, 128, 3])
+
         #编码解码部分
         self.encode = transfer_function(
             self.batch_normalization_layer(
@@ -18,6 +29,7 @@ class Autoencoder_conv2conv(object):
                 self.weight['b1']
             ),param=self.bnparam1)
         )
+
 
         self.decode = transfer_function(
             self.batch_normalization_layer(
@@ -33,6 +45,13 @@ class Autoencoder_conv2conv(object):
 
     #权值初始化
     def _initialize_weights(self,name,encoder_filter_size,decoder_filter_size):
+        '''
+        卷积核的参数初始化函数
+        :param name:
+        :param encoder_filter_size:
+        :param decoder_filter_size:
+        :return: 返回一个权值和偏执值的字典通过w1,b1,w2,b2来调用
+        '''
         all_weights = dict()
         all_weights['w1'] = tf.get_variable(name=name + '_w1',
                                             shape=encoder_filter_size,
@@ -71,12 +90,15 @@ class Autoencoder_conv2conv(object):
         return tf.nn.batch_normalization(input, mean, variance, param['beta'], param['gamma'], 0.001)
 
     def partial_fit(self):
+        '''用于训练网络'''
         return (self.optimizer,self.cost)
 
     def total_cost(self):
+        '''用于测试网络'''
         return self.cost
 
     def filture(self):
+        '''用于提取中间特征，作为下一个Autoencoder的输入'''
         return self.encode
 
 #卷积层与反卷积层组成的自编码器
