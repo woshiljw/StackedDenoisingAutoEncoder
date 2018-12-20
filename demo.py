@@ -86,11 +86,11 @@ h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
 h = tf.layers.conv2d(h,64,[3,3],[1,1],padding='SAME')
 h = tf.nn.relu(h)
 h = batch_normalization_layer(h,'4')
-h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
+encode = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
 
 
 
-h = tf.layers.conv2d(h,64,[3,3],[1,1],padding='SAME')
+h = tf.layers.conv2d(encode,64,[3,3],[1,1],padding='SAME')
 h = tf.nn.relu(h)
 h = batch_normalization_layer(h,'5')
 h = tf.layers.conv2d_transpose(h,64,[3,3],[2,2],padding='SAME')
@@ -116,6 +116,11 @@ h = tf.layers.conv2d_transpose(h,64,[5,5],[2,2],padding='SAME')
 
 out = tf.layers.conv2d(h,3,[1,1],[1,1],padding='SAME')
 out = tf.nn.relu(out)
+
+saver = tf.train.Saver()
+
+tf.add_to_collection('encode',encode)
+tf.add_to_collection('reconstruct',out)
 
 stackcost = tf.reduce_mean(tf.square(tf.subtract(y, out)))
 opt = tf.train.AdamOptimizer(0.0000585).minimize(stackcost)
@@ -145,5 +150,7 @@ for epoch in range(20000):
             cv2.imwrite('./outputImage/' + str(epoch) + '_output.hdr',
                         np.reshape(rebuildimage[0], [32, 128, 3])[:, :, ::-1])
 
+    if epoch % 100 == 0:
+        saver.save(sess,'./saveModel/my_model',global_step=epoch,)
 
     print("Epoch:{},Cost:{:.9f}".format(epoch, avg_cost))
