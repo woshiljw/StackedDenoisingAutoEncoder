@@ -64,8 +64,8 @@ def batch_normalization_layer(input,name):
 
 y = tf.placeholder(tf.float32, [64, 32, 128, 3])
 
-x = tf.placeholder(tf.float32, [64, 32, 128, 3])
-h = tf.layers.conv2d(x,64,[5,5],[1,1],padding='SAME',name='input')
+x = tf.placeholder(tf.float32, [64, 32, 128, 3],name='input')
+h = tf.layers.conv2d(x,64,[5,5],[1,1],padding='SAME')
 h = tf.nn.relu(h)
 h = batch_normalization_layer(h,'1')
 h = tf.layers.max_pooling2d(h,[2,2],[2,2])
