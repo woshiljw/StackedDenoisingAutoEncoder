@@ -43,10 +43,10 @@ class Data(object):
         self.num = 0
 
 def batch_normalization_layer(input,name):
-    axis = list([0])
+    axis = list([0,1,2])
     mean,variance = tf.nn.moments(input,axis)
-    beta = tf.get_variable('beta'+name,initializer=tf.zeros_initializer,shape=input.get_shape()[1:],dtype=tf.float32)
-    gamma = tf.get_variable('gamma'+name,initializer=tf.ones_initializer,shape=input.get_shape()[1:],dtype=tf.float32)
+    beta = tf.get_variable('beta'+name,initializer=tf.zeros_initializer,shape=input.get_shape()[-1],dtype=tf.float32)
+    gamma = tf.get_variable('gamma'+name,initializer=tf.ones_initializer,shape=input.get_shape()[-1],dtype=tf.float32)
 
     # moving_mean = tf.get_variable('moving_mean'+name,initializer=tf.zeros_initializer,
     #                               shape=input.get_shape()[-1],dtype=tf.float32,trainable=False)
@@ -54,7 +54,7 @@ def batch_normalization_layer(input,name):
     #                                   shape=input.get_shape()[-1],dtype=tf.float32,trainable=False)
     # update_moving_mean = moving_averages.assign_moving_average(moving_mean,mean,0.999)
     # update_moving_variance = moving_averages.assign_moving_average(moving_variance,variance,0.999)
-
+    #
     # tf.add_to_collection('mean'+name,update_moving_mean)
     # tf.add_to_collection('variance'+name,update_moving_variance)
 
@@ -93,32 +93,32 @@ h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
 h = tf.layers.conv2d(h,64,[3,3],[1,1],padding='SAME')
 h = tf.nn.relu(h)
 h = batch_normalization_layer(h,'5')
-h = tf.image.resize_nearest_neighbor(h,[4,16])
+h = tf.layers.conv2d_transpose(h,64,[3,3],[2,2],padding='SAME')
 
 
 h = tf.layers.conv2d(h,96,[3,3],[1,1],padding='SAME')
 h = tf.nn.relu(h)
 h = batch_normalization_layer(h,'6')
-h = tf.image.resize_nearest_neighbor(h,[8,32])
+h = tf.layers.conv2d_transpose(h,96,[3,3],[2,2],padding='SAME')
 
 
 h = tf.layers.conv2d(h,96,[3,3],[1,1],padding='SAME')
 h = tf.nn.relu(h)
 h = batch_normalization_layer(h,'7')
-h = tf.image.resize_nearest_neighbor(h,[16,64])
+h = tf.layers.conv2d_transpose(h,96,[3,3],[2,2],padding='SAME')
 
 
 h = tf.layers.conv2d(h,64,[5,5],[1,1],padding='SAME')
 h = tf.nn.relu(h)
 h = batch_normalization_layer(h,'8')
-h = tf.image.resize_nearest_neighbor(h,[32,128])
+h = tf.layers.conv2d_transpose(h,64,[5,5],[2,2],padding='SAME')
 
 
 out = tf.layers.conv2d(h,3,[1,1],[1,1],padding='SAME')
 out = tf.nn.relu(out)
 
 stackcost = tf.reduce_mean(tf.square(tf.subtract(y, out)))
-opt = tf.train.AdamOptimizer(0.0000085).minimize(stackcost)
+opt = tf.train.AdamOptimizer(0.0000585).minimize(stackcost)
 
 sess = tf.Session()
 sess.run(tf.initialize_all_variables())
@@ -128,7 +128,7 @@ for epoch in range(20000):
     avg_cost = 0
     total_batch = int(len(data.train_data) / 64)
 
-    data.shuffle()
+    data.num=0
     for i in range(total_batch):
         # input = sess.run(h,feed_dict={x:})
         gaussianNoise = 0.*np.random.normal(size=[64,12288]).reshape([64,32,128,3])
@@ -138,9 +138,10 @@ for epoch in range(20000):
 
         avg_cost += cost / len(data.train_data) * 64
         if i % 50 == 0 and epoch %50==0:
-            rebuildimage = sess.run(out, feed_dict={x: traindata})
-            cv2.imwrite('./outputImage/input.hdr', traindata[0][:, :, ::-1])
+            rebuildimage = sess.run(out, feed_dict={x: data.test([64,32,128,3])})
+            cv2.imwrite('./outputImage/input.hdr', data.test([64,32,128,3])[0][:, :, ::-1])
             # print(output.shape)
+            # print(rebuildimage.shape)
             cv2.imwrite('./outputImage/' + str(epoch) + '_output.hdr',
                         np.reshape(rebuildimage[0], [32, 128, 3])[:, :, ::-1])
 
