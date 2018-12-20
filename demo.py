@@ -23,19 +23,24 @@ class Data(object):
         self.test_index = np.arange(len(self.test_))
         np.random.shuffle(self.test_index)
         self.test_data = self.test_[self.test_index,:]
+        self.num = 0
+
 
     def batch_size(self, resize):
         '''
         :param resize: tensor的大小，默认为［64，32，128，3］
         :return: 返回训练数据
         '''
-        np.random.shuffle(self.train_index)  # 打乱索引
-        self.train_data = self.train[self.train_index, :]
-        return np.reshape(self.train_data[0:self.batchsize], resize)
+        self.num+=self.batchsize
+        return np.reshape(self.train_data[self.num-self.batchsize:self.num], resize)
 
     def test(self,resize):
         return np.reshape(self.test_data[0:self.batchsize], resize)
 
+    def shuffle(self):
+        np.random.shuffle(self.train_index)  # 打乱索引
+        self.train_data = self.train[self.train_index, :]
+        self.num = 0
 
 def batch_normalization_layer(input,name):
     axis = list([0])
@@ -122,6 +127,8 @@ data = Data('../data/data.npz', 64)
 for epoch in range(20000):
     avg_cost = 0
     total_batch = int(len(data.train_data) / 64)
+
+    data.shuffle()
     for i in range(total_batch):
         # input = sess.run(h,feed_dict={x:})
         gaussianNoise = 0.*np.random.normal(size=[64,12288]).reshape([64,32,128,3])
