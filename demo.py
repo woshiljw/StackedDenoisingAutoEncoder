@@ -151,6 +151,6 @@ for epoch in range(20000):
                         np.reshape(rebuildimage[0], [32, 128, 3])[:, :, ::-1])
 
     if epoch % 100 == 0:
-        saver.save(sess,'./saveModel/my_model',global_step=epoch,)
+        saver.save(sess,'./saveModel/my_model',global_step=epoch)
 
     print("Epoch:{},Cost:{:.9f}".format(epoch, avg_cost))
