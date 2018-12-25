@@ -66,64 +66,66 @@ y = tf.placeholder(tf.float32, [64, 32, 128, 3])
 
 x = tf.placeholder(tf.float32, [64, 32, 128, 3],name='input')
 h = tf.layers.conv2d(x,64,[5,5],[1,1],padding='SAME')
+h = batch_norm(h)
 h = tf.nn.relu(h)
-h = batch_normalization_layer(h,'1')
 h = tf.layers.max_pooling2d(h,[2,2],[2,2])
 
 
 h = tf.layers.conv2d(h,96,[3,3],[1,1],padding='SAME')
+h = batch_norm(h)
 h = tf.nn.relu(h)
-h = batch_normalization_layer(h,'2')
 h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
 
 
 h = tf.layers.conv2d(h,96,[3,3],[1,1],padding='SAME')
+h = batch_norm(h)
 h = tf.nn.relu(h)
-h = batch_normalization_layer(h,'3')
 h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
 
 
 h = tf.layers.conv2d(h,64,[3,3],[1,1],padding='SAME')
+h = batch_norm(h)
 h = tf.nn.relu(h)
-h = batch_normalization_layer(h,'4')
 encode = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
 
 
-
-h = tf.layers.conv2d(encode,64,[3,3],[1,1],padding='SAME')
+decode = tf.layers.conv2d_transpose(encode,64,[3,3],[2,2],padding='SAME')
+# decode = tf.layers.conv2d(encode,64,[3,3],[2,2],padding='SAME')
+h = batch_norm(decode)
 h = tf.nn.relu(h)
-h = batch_normalization_layer(h,'5')
-h = tf.layers.conv2d_transpose(h,64,[3,3],[2,2],padding='SAME')
+# h = tf.layers.conv2d_transpose(h,64,[3,3],[2,2],padding='SAME')
 
 
-h = tf.layers.conv2d(h,96,[3,3],[1,1],padding='SAME')
-h = tf.nn.relu(h)
-h = batch_normalization_layer(h,'6')
 h = tf.layers.conv2d_transpose(h,96,[3,3],[2,2],padding='SAME')
-
-
-h = tf.layers.conv2d(h,96,[3,3],[1,1],padding='SAME')
+h = batch_norm(h)
 h = tf.nn.relu(h)
-h = batch_normalization_layer(h,'7')
+# h = tf.layers.conv2d_transpose(h,96,[3,3],[2,2],padding='SAME')
+
+
 h = tf.layers.conv2d_transpose(h,96,[3,3],[2,2],padding='SAME')
-
-
-h = tf.layers.conv2d(h,64,[5,5],[1,1],padding='SAME')
+h = batch_norm(h)
 h = tf.nn.relu(h)
-h = batch_normalization_layer(h,'8')
+# h = tf.layers.conv2d_transpose(h,96,[3,3],[2,2],padding='SAME')
+
+
 h = tf.layers.conv2d_transpose(h,64,[5,5],[2,2],padding='SAME')
+h = batch_norm(h)
+h = tf.nn.relu(h)
+# h = tf.layers.conv2d_transpose(h,64,[5,5],[2,2],padding='SAME')
 
 
 out = tf.layers.conv2d(h,3,[1,1],[1,1],padding='SAME')
-out = tf.nn.relu(out)
+# out = batch_norm(out)
+# out = tf.nn.relu(out)
 
 saver = tf.train.Saver()
 
 tf.add_to_collection('encode',encode)
+tf.add_to_collection('decode',decode)
 tf.add_to_collection('reconstruct',out)
 
 stackcost = tf.reduce_mean(tf.square(tf.subtract(y, out)))
-opt = tf.train.AdamOptimizer(0.0000585).minimize(stackcost)
+opt = tf.train.AdamOptimizer(0.00185).minimize(stackcost)
 
 sess = tf.Session()
 sess.run(tf.initialize_all_variables())
@@ -147,10 +149,14 @@ for epoch in range(20000):
             cv2.imwrite('./outputImage/input.hdr', data.test([64,32,128,3])[0][:, :, ::-1])
             # print(output.shape)
             # print(rebuildimage.shape)
+            print(rebuildimage.shape)
             cv2.imwrite('./outputImage/' + str(epoch) + '_output.hdr',
                         np.reshape(rebuildimage[0], [32, 128, 3])[:, :, ::-1])
 
     if epoch % 100 == 0:
         saver.save(sess,'./saveModel/my_model',global_step=epoch)
+
+    # if epoch % 1000 == 0:
+    #     data.shuffle()
 
     print("Epoch:{},Cost:{:.9f}".format(epoch, avg_cost))
