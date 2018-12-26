@@ -86,12 +86,23 @@ h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
 h = tf.layers.conv2d(h,64,[3,3],[1,1],padding='SAME')
 h = batch_norm(h)
 h = tf.nn.relu(h)
-encode = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
+h = tf.nn.max_pool(h,[1,2,2,1],[1,2,2,1],padding='SAME')
 
 
-decode = tf.layers.conv2d_transpose(encode,64,[3,3],[2,2],padding='SAME')
+
+h = tf.layers.flatten(h)
+encode = tf.layers.dense(h,64)
+h = batch_norm(encode)
+h = tf.nn.relu(h)
+
+h = tf.layers.dense(h,1024)
+h = batch_norm(h)
+h = tf.nn.relu(h)
+h = tf.reshape(h,[64,2,8,64])
+
+h = tf.layers.conv2d_transpose(h,64,[3,3],[2,2],padding='SAME')
 # decode = tf.layers.conv2d(encode,64,[3,3],[2,2],padding='SAME')
-h = batch_norm(decode)
+h = batch_norm(h)
 h = tf.nn.relu(h)
 # h = tf.layers.conv2d_transpose(h,64,[3,3],[2,2],padding='SAME')
 
@@ -121,7 +132,7 @@ out = tf.layers.conv2d(h,3,[1,1],[1,1],padding='SAME')
 saver = tf.train.Saver()
 
 tf.add_to_collection('encode',encode)
-tf.add_to_collection('decode',decode)
+# tf.add_to_collection('decode',decode)
 tf.add_to_collection('reconstruct',out)
 
 stackcost = tf.reduce_mean(tf.square(tf.subtract(y, out)))
@@ -138,7 +149,7 @@ for epoch in range(20000):
     data.num=0
     for i in range(total_batch):
         # input = sess.run(h,feed_dict={x:})
-        gaussianNoise = 0.*np.random.normal(size=[64,12288]).reshape([64,32,128,3])
+        gaussianNoise = 0.01*np.random.normal(size=[64,12288]).reshape([64,32,128,3])
 
         traindata = data.batch_size([-1, 32, 128, 3])
         _, cost = sess.run((opt, stackcost), feed_dict={x: traindata+gaussianNoise,y:traindata})
@@ -149,7 +160,7 @@ for epoch in range(20000):
             cv2.imwrite('./outputImage/input.hdr', data.test([64,32,128,3])[0][:, :, ::-1])
             # print(output.shape)
             # print(rebuildimage.shape)
-            print(rebuildimage.shape)
+            # print(rebuildimage.shape)
             cv2.imwrite('./outputImage/' + str(epoch) + '_output.hdr',
                         np.reshape(rebuildimage[0], [32, 128, 3])[:, :, ::-1])
 
